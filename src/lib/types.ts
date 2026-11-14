@@ -56,6 +56,16 @@ export type Article = {
   body?: string;
 };
 
+export type ContentItem = {
+  kind: "episode" | "video" | "x_post";
+  title: string;
+  url: string;
+  thumbnailUrl?: string;
+  publishedAt: string;
+  listingName?: string;
+  listingSlug?: string;
+};
+
 export type Spotlight = {
   kind: string;
   listingSlug: string;

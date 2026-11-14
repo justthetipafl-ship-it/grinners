@@ -12,11 +12,11 @@ Winners are Grinners. A discovery directory for sports betting and fantasy tipst
 - Site shell: header, footer, 18+ gate, responsible-gambling strip
 - Search-engine and sharing groundwork: sitemap, robots file, a generated share image for every listing and article, Share to X buttons
 - Admin dashboard at `/admin`: overview with click, sign-up and suggestion counts; listings; tips with grading; articles; spotlight scheduling; suggestion review
+- Latest videos and episodes: set a feed on a YouTube or podcast listing, then press **Refresh feeds** on the admin overview
 - Click tracking: a listing's main button goes through `/go/<slug>`, which counts the click and forwards the visitor
 
 **Not built yet**
 
-- Automatic latest episodes and videos from podcast and YouTube feeds
 - Sending the newsletter (sign-ups are collected; sending needs an email service)
 - Admin screen for sports, markets and categories (editable in Supabase's Table Editor meanwhile)
 - Past-spotlights archive, creator logins
@@ -33,6 +33,13 @@ Until the database is connected the site shows the invented sample content in `s
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: the **publishable** key (older projects call it the `anon` key). Never the secret or `service_role` key.
 5. **Redeploy.** In Vercel open **Deployments**, press the three dots on the latest one, choose **Redeploy**.
 6. **Make yourself an admin.** Go to `/admin` on the live site and sign in. The page shows one line of SQL with your user ID. Paste it into Supabase's SQL Editor, run it, reload.
+
+### Optional: refresh feeds automatically every day
+
+Without this, feeds update whenever you press **Refresh feeds** in admin. To have them update on their own at about 5am Brisbane time, add two more settings in Vercel (**Settings > Environment Variables**), both as type **Secret**, then redeploy:
+
+- `SUPABASE_SECRET_KEY`: in Supabase, **Project Settings > API Keys**, the **secret** key (older projects: `service_role`). This key can change anything in the database, so it only ever goes here.
+- `CRON_SECRET`: any long random string you make up, 20 characters or more.
 
 ### Removing sample content
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { refreshFeeds } from "@/lib/feeds";
 import { isConfigured, requireAdmin, serverClient } from "@/lib/supabase";
 
 // Two images can be sent in one save, and the host caps a request at about 4.5 MB.
@@ -86,6 +87,21 @@ export async function saveListing(form: FormData) {
   const listingId: string = saved.data!.id;
   const editUrl = `/admin/listings/${listingId}`;
   const problems: string[] = [];
+
+  // Feed address lives in the listing's extra attributes. Changing it clears what was worked out from the old one.
+  const feedInput = text(form, "feed_url");
+  const current = await supabase.from("listings").select("attributes").eq("id", listingId).single();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const attributes = { ...((current.data?.attributes ?? {}) as Record<string, any>) };
+  if ((attributes.feed_url ?? "") !== feedInput) {
+    if (feedInput) attributes.feed_url = feedInput;
+    else delete attributes.feed_url;
+    delete attributes.feed_resolved;
+    delete attributes.feed_error;
+    if (!feedInput) delete attributes.feed_image;
+    const { error } = await supabase.from("listings").update({ attributes }).eq("id", listingId);
+    if (error) problems.push(`Feed address wasn't saved: ${error.message}`);
+  }
 
   // Social links: one per line, written as "Platform | https://address".
   const links = lines(text(form, "links")).map((line, index) => {
@@ -354,4 +370,18 @@ export async function reviewSubmission(form: FormData) {
   if (created.error || !created.data) redirect(`/admin/submissions?error=${encodeURIComponent(created.error?.message ?? "Couldn't create the draft.")}`);
   await supabase.from("submissions").update({ status: "approved" }).eq("id", id);
   redirect(`/admin/listings/${created.data!.id}`);
+}
+
+/* ------------------------------ Feeds ----------------------------- */
+
+export async function refreshFeedsNow() {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+  const summary = await refreshFeeds(supabase);
+  revalidatePath("/", "layout");
+  const message =
+    summary.checked === 0
+      ? "No listings have a feed set yet. Add one on a listing's edit page."
+      : `Updated ${summary.updated} of ${summary.checked} feeds.` + (summary.failed.length ? ` Problems: ${summary.failed.map((f) => `${f.name}: ${f.reason}`).join(" | ")}` : "");
+  redirect(`/admin?feeds=${encodeURIComponent(message)}`);
 }

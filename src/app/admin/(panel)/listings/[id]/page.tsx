@@ -177,6 +177,16 @@ export default async function EditListing({ params, searchParams }: Props) {
         <Field label="Social and content links" hint="One per line, written as: Platform | https://address">
           <textarea name="links" rows={4} defaultValue={links} className={`${area} font-mono text-sm`} placeholder={"X | https://x.com/handle\nYouTube | https://youtube.com/@channel"} />
         </Field>
+        <Field
+          label="Feed for latest videos or episodes"
+          hint={
+            l.attributes?.feed_error
+              ? `Last attempt failed: ${l.attributes.feed_error}`
+              : "Podcasts: the show's RSS feed address. YouTube: the channel address or its channel ID (starts with UC). Then press “Refresh feeds” on the admin overview."
+          }
+        >
+          <input name="feed_url" defaultValue={l.attributes?.feed_url ?? ""} className={input} placeholder="https://www.youtube.com/@channel" />
+        </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Main button text">
             <input name="cta_label" defaultValue={cta?.label ?? ""} className={input} placeholder="View membership" />

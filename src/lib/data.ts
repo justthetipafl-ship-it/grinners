@@ -4,7 +4,7 @@
  */
 import * as sample from "@/data/sample";
 import { isConfigured, publicClient } from "./supabase";
-import type { Article, Listing, ListingType, PricingModel, Spotlight, Sport, Tip } from "./types";
+import type { Article, ContentItem, Listing, ListingType, PricingModel, Spotlight, Sport, Tip } from "./types";
 
 export type ListingFilter = {
   type?: ListingType;
@@ -38,7 +38,8 @@ function toListing(row: any): Listing {
     bio: row.bio,
     initials: initialsOf(row.name),
     logoUrl: row.logo_url ?? undefined,
-    coverUrl: row.cover_url ?? undefined,
+    // An uploaded preview image wins; otherwise fall back to artwork found in the feed.
+    coverUrl: row.cover_url ?? row.attributes?.feed_image ?? undefined,
     sports: row.sports ?? [],
     markets: row.markets?.length ? row.markets : undefined,
     category: row.category ?? undefined,
@@ -199,6 +200,24 @@ export async function getSpotlight(): Promise<Spotlight | undefined> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = data as any;
   return { kind: row.kind, listingSlug: row.listings.slug, headline: row.headline, body: row.body, isSponsored: row.is_sponsored };
+}
+
+export async function getContent(filter: { listingSlug?: string; limit?: number } = {}): Promise<ContentItem[]> {
+  if (!isConfigured) return [];
+  let query = publicClient().from("content_items").select("kind, title, url, thumbnail_url, published_at, listings!inner(name, slug)");
+  if (filter.listingSlug) query = query.eq("listings.slug", filter.listingSlug);
+  const { data, error } = await query.order("published_at", { ascending: false }).limit(filter.limit ?? 6);
+  warn("content", error);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((c: any) => ({
+    kind: c.kind,
+    title: c.title,
+    url: c.url,
+    thumbnailUrl: c.thumbnail_url ?? undefined,
+    publishedAt: c.published_at,
+    listingName: c.listings?.name,
+    listingSlug: c.listings?.slug,
+  }));
 }
 
 /** Record from tips graded on Grinners only. Never mixes in a creator's own claims. */

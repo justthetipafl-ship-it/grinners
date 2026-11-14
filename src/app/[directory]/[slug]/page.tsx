@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chip, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
-import { getListing, getListings, getTips, gradedRecord } from "@/lib/data";
+import { Chip, ContentCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
+import { getContent, getListing, getListings, getTips, gradedRecord } from "@/lib/data";
 import { shareToX } from "@/lib/site";
 import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
 
@@ -26,7 +26,7 @@ export default async function ListingPage({ params }: Props) {
   // A profile lives under the directory of its first type only, so there is one address per listing.
   if (!dir || !listing || directoryForType(listing.types[0]) !== directory) notFound();
 
-  const tips = await getTips({ listingSlug: slug });
+  const [tips, content] = await Promise.all([getTips({ listingSlug: slug }), getContent({ listingSlug: slug, limit: 4 })]);
   const record = gradedRecord(tips);
   const shareUrl = shareToX(`${listing.name} on Grinners`, `/${directory}/${slug}`);
 
@@ -76,6 +76,17 @@ export default async function ListingPage({ params }: Props) {
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {content.length > 0 && (
+            <section>
+              <h2 className="mb-3 font-semibold">{content[0].kind === "video" ? "Latest videos" : "Latest episodes"}</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {content.map((item) => (
+                  <ContentCard key={item.url} item={item} showSource={false} />
+                ))}
+              </div>
             </section>
           )}
 

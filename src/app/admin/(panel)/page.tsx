@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { refreshFeedsNow } from "../actions";
 import { requireAdmin } from "@/lib/supabase";
 
 const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
@@ -12,7 +13,8 @@ function Stat({ label, value }: { label: string; value: number | null }) {
   );
 }
 
-export default async function AdminHome() {
+export default async function AdminHome({ searchParams }: { searchParams: Promise<{ feeds?: string }> }) {
+  const { feeds } = await searchParams;
   const { supabase, isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
 
@@ -65,9 +67,19 @@ export default async function AdminHome() {
         )}
       </section>
 
-      <Link href="/admin/listings/new" className="flex h-11 w-fit items-center rounded-control bg-grin px-5 font-semibold text-ink hover:brightness-110">
-        Add a listing
-      </Link>
+      {feeds && (
+        <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm">
+          {feeds}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-3">
+        <Link href="/admin/listings/new" className="flex h-11 w-fit items-center rounded-control bg-grin px-5 font-semibold text-ink hover:brightness-110">
+          Add a listing
+        </Link>
+        <form action={refreshFeedsNow}>
+          <button className="h-11 rounded-control border border-line px-5 text-sm hover:bg-raised">Refresh feeds (latest videos and episodes)</button>
+        </form>
+      </div>
     </div>
   );
 }

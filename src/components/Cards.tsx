@@ -4,6 +4,7 @@ import { GrinTick } from "./Logo";
 import {
   directoryForType,
   type Article,
+  type ContentItem,
   type Listing,
   type Tip,
 } from "@/lib/types";
@@ -261,5 +262,28 @@ export function SearchForm({
         Search
       </button>
     </form>
+  );
+}
+
+const shortDay = new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short", timeZone: "Australia/Brisbane" });
+
+/** A latest video or episode. Opens on the creator's own platform. */
+export function ContentCard({ item, showSource = true }: { item: ContentItem; showSource?: boolean }) {
+  return (
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noopener"
+      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface transition-colors hover:border-muted/50 hover:bg-raised"
+    >
+      {item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" loading="lazy" className="aspect-video w-full border-b border-line bg-raised object-cover" />}
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <p className="text-xs text-muted">
+          {item.kind === "video" ? "Video" : "Episode"} · {shortDay.format(new Date(item.publishedAt))}
+        </p>
+        <h3 className="line-clamp-2 font-semibold leading-snug">{item.title}</h3>
+        {showSource && item.listingName && <p className="mt-auto text-sm text-muted">{item.listingName} ↗</p>}
+      </div>
+    </a>
   );
 }

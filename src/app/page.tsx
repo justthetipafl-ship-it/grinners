@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArticleCard, ListingCard, Monogram, SearchForm, SectionHeading, TipCard, listingHref, DisclosureBadge } from "@/components/Cards";
-import { getArticles, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
+import { ArticleCard, ContentCard, ListingCard, Monogram, SearchForm, SectionHeading, TipCard, listingHref, DisclosureBadge } from "@/components/Cards";
+import { getArticles, getContent, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
 import { DIRECTORIES, type DirectoryKey } from "@/lib/types";
 import { NewsletterForm } from "@/components/PublicForms";
 
@@ -8,7 +8,7 @@ import { NewsletterForm } from "@/components/PublicForms";
 export const revalidate = 3600;
 
 export default async function Home() {
-  const [featured, tools, tips, articles, spotlight, sports, all] = await Promise.all([
+  const [featured, tools, tips, articles, spotlight, sports, all, content] = await Promise.all([
     getListings({ featured: true }),
     getListings({ type: "tool" }),
     getTips(),
@@ -16,6 +16,7 @@ export default async function Home() {
     getSpotlight(),
     getSports(),
     getListings(),
+    getContent({ limit: 6 }),
   ]);
   const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
   const bySlug = new Map(all.map((l) => [l.slug, l]));
@@ -117,6 +118,17 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
+
+        {content.length > 0 && (
+          <section>
+            <SectionHeading title="Latest videos and episodes" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {content.map((item) => (
+                <ContentCard key={item.url} item={item} />
+              ))}
+            </div>
+          </section>
         )}
 
         <section id="newsletter" className="glow rounded-card border border-line bg-surface p-6 sm:p-8">
