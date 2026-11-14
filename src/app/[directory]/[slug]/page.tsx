@@ -49,7 +49,7 @@ export default async function ListingPage({ params }: Props) {
               <Chip key={s}>{s.toUpperCase()}</Chip>
             ))}
             {listing.markets?.map((m) => <Chip key={m}>{m}</Chip>)}
-            {listing.category && <Chip>{listing.category}</Chip>}
+            {listing.categories?.map((c) => <Chip key={c}>{c}</Chip>)}
           </div>
         </div>
       </header>

@@ -67,6 +67,7 @@ export default async function EditListing({ params, searchParams }: Props) {
     .map((x: any) => `${x.platform} | ${x.url}`)
     .join("\n");
   const cta = (l.affiliate_links ?? []).find((a: any) => a.is_active);
+  const selectedCategories: string[] = Array.isArray(l.attributes?.categories) ? l.attributes.categories : l.category ? [l.category] : [];
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
@@ -156,14 +157,15 @@ export default async function EditListing({ params, searchParams }: Props) {
         <Field label="Betting markets" hint="Separate with commas, e.g. Player props, Line, Totals">
           <input name="markets" defaultValue={(l.markets ?? []).join(", ")} className={input} />
         </Field>
-        <Field label="Tool category" hint="Tools only.">
-          <select name="category" defaultValue={l.category ?? ""} className={input}>
-            <option value="">None</option>
+        <div>
+          <p className="mb-1 text-sm font-medium">Categories</p>
+          <div className="grid gap-x-5 sm:grid-cols-2">
             {(categories ?? []).map((c) => (
-              <option key={c.name}>{c.name}</option>
+              <Check key={c.name} name="categories" value={c.name} label={c.name} checked={selectedCategories.includes(c.name)} />
             ))}
-          </select>
-        </Field>
+          </div>
+          <p className="text-xs text-muted">Tick every one that applies. Mainly for tools; visitors can filter the Tools directory by these.</p>
+        </div>
         <Field label="Features" hint="Tools only. One per line.">
           <textarea name="features" rows={3} defaultValue={(l.features ?? []).join("\n")} className={area} />
         </Field>

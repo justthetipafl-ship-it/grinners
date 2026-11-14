@@ -54,6 +54,8 @@ export async function saveListing(form: FormData) {
   if (types.length === 0) fail("Tick at least one type.");
   if (status === "published" && !vetted) fail("Tick the vetting checklist before publishing.");
 
+  const categoryList = form.getAll("categories").map(String).filter(Boolean);
+
   const row = {
     name,
     slug,
@@ -68,7 +70,8 @@ export async function saveListing(form: FormData) {
       .split(",")
       .map((m) => m.trim())
       .filter(Boolean),
-    category: text(form, "category") || null,
+    // The first ticked category is also kept in its own column, for search and older code paths.
+    category: categoryList[0] ?? null,
     features: lines(text(form, "features")),
     status,
     is_featured: form.get("is_featured") === "on",
@@ -93,14 +96,19 @@ export async function saveListing(form: FormData) {
   const current = await supabase.from("listings").select("attributes").eq("id", listingId).single();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const attributes = { ...((current.data?.attributes ?? {}) as Record<string, any>) };
-  if ((attributes.feed_url ?? "") !== feedInput) {
+  const feedChanged = (attributes.feed_url ?? "") !== feedInput;
+  if (feedChanged) {
     if (feedInput) attributes.feed_url = feedInput;
     else delete attributes.feed_url;
     delete attributes.feed_resolved;
     delete attributes.feed_error;
     if (!feedInput) delete attributes.feed_image;
+  }
+  const categoriesChanged = JSON.stringify(attributes.categories ?? []) !== JSON.stringify(categoryList);
+  if (categoriesChanged) attributes.categories = categoryList;
+  if (feedChanged || categoriesChanged) {
     const { error } = await supabase.from("listings").update({ attributes }).eq("id", listingId);
-    if (error) problems.push(`Feed address wasn't saved: ${error.message}`);
+    if (error) problems.push(`Categories and feed address weren't saved: ${error.message}`);
   }
 
   // Social links: one per line, written as "Platform | https://address".

@@ -17,7 +17,8 @@ export type Listing = {
   coverUrl?: string;
   sports: string[];
   markets?: string[];
-  category?: string;
+  /** Tool categories. A listing can sit in several. */
+  categories?: string[];
   pricing: PricingModel;
   pricingNote?: string;
   links: { platform: string; url: string }[];

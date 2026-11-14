@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingCard } from "@/components/Cards";
-import { getListings, getSports } from "@/lib/data";
+import { categorySlug, getListings, getSports } from "@/lib/data";
 import { DIRECTORIES, type DirectoryKey, type PricingModel } from "@/lib/types";
 
 type Props = {
   params: Promise<{ directory: string }>;
-  searchParams: Promise<{ sport?: string; pricing?: string }>;
+  searchParams: Promise<{ sport?: string; pricing?: string; category?: string }>;
 };
 
 export const dynamicParams = false;
@@ -51,18 +51,22 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
   const dir = DIRECTORIES[directory as DirectoryKey];
   if (!dir) notFound();
 
-  const { sport, pricing } = await searchParams;
-  const [listings, sports] = await Promise.all([
-    getListings({ type: dir.type, sport, pricing: pricing as PricingModel | undefined }),
+  const { sport, pricing, category } = await searchParams;
+  const [listings, sports, everything] = await Promise.all([
+    getListings({ type: dir.type, sport, pricing: pricing as PricingModel | undefined, category }),
     getSports(),
+    getListings({ type: dir.type }),
   ]);
+  // Only categories that at least one listing here uses, so no filter leads to an empty page.
+  const categories = [...new Set(everything.flatMap((l) => l.categories ?? []))].sort();
 
   // Builds a link that keeps the other filter in place.
-  const link = (next: { sport?: string; pricing?: string }) => {
+  const link = (next: { sport?: string; pricing?: string; category?: string }) => {
     const query = new URLSearchParams();
-    const merged = { sport, pricing, ...next };
+    const merged = { sport, pricing, category, ...next };
     if (merged.sport) query.set("sport", merged.sport);
     if (merged.pricing) query.set("pricing", merged.pricing);
+    if (merged.category) query.set("category", merged.category);
     const qs = query.toString();
     return `/${directory}${qs ? `?${qs}` : ""}`;
   };
@@ -83,6 +87,18 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
             </FilterChip>
           ))}
         </div>
+        {categories.length > 1 && (
+          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by category">
+            <FilterChip href={link({ category: undefined })} active={!category}>
+              All categories
+            </FilterChip>
+            {categories.map((c) => (
+              <FilterChip key={c} href={link({ category: categorySlug(c) })} active={category === categorySlug(c)}>
+                {c}
+              </FilterChip>
+            ))}
+          </div>
+        )}
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by price">
           <FilterChip href={link({ pricing: undefined })} active={!pricing}>
             Any price

@@ -12,7 +12,15 @@ export type ListingFilter = {
   pricing?: PricingModel;
   q?: string;
   featured?: boolean;
+  /** Category name turned into a web-safe slug, e.g. "player-prop-research". */
+  category?: string;
 };
+
+export const categorySlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export const initialsOf = (name: string) =>
   name
@@ -42,7 +50,12 @@ function toListing(row: any): Listing {
     coverUrl: row.cover_url ?? row.attributes?.feed_image ?? undefined,
     sports: row.sports ?? [],
     markets: row.markets?.length ? row.markets : undefined,
-    category: row.category ?? undefined,
+    // Several categories live in the listing's extra attributes; older rows have just the one column.
+    categories: Array.isArray(row.attributes?.categories) && row.attributes.categories.length
+      ? row.attributes.categories.map(String)
+      : row.category
+        ? [row.category]
+        : undefined,
     pricing: row.pricing,
     pricingNote: row.pricing_note ?? undefined,
     links: [...(row.listing_links ?? [])]
@@ -92,8 +105,9 @@ export async function getListings(filter: ListingFilter = {}): Promise<Listing[]
       if (filter.sport && !l.sports.includes(filter.sport)) return false;
       if (filter.pricing && l.pricing !== filter.pricing) return false;
       if (filter.featured && !l.isFeatured) return false;
+      if (filter.category && !(l.categories ?? []).some((c) => categorySlug(c) === filter.category)) return false;
       if (q) {
-        const haystack = [l.name, l.tagline, l.bio, l.category ?? "", ...l.sports, ...(l.markets ?? [])].join(" ").toLowerCase();
+        const haystack = [l.name, l.tagline, l.bio, ...(l.categories ?? []), ...l.sports, ...(l.markets ?? [])].join(" ").toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
@@ -110,11 +124,12 @@ export async function getListings(filter: ListingFilter = {}): Promise<Listing[]
     const safe = q.replace(/[^a-z0-9 &'-]/g, " ").trim();
     if (!safe) return [];
     const slugLike = safe.replace(/\s+/g, "-");
-    query = query.or(`name.ilike.%${safe}%,tagline.ilike.%${safe}%,bio.ilike.%${safe}%,category.ilike.%${safe}%,sports.cs.{${slugLike}}`);
+    query = query.or(`name.ilike.%${safe}%,tagline.ilike.%${safe}%,bio.ilike.%${safe}%,category.ilike.%${safe}%,attributes->>categories.ilike.%${safe}%,sports.cs.{${slugLike}}`);
   }
   const { data, error } = await query.order("is_featured", { ascending: false }).order("name");
   warn("listings", error);
-  return (data ?? []).map(toListing);
+  const listings = (data ?? []).map(toListing);
+  return filter.category ? listings.filter((l) => (l.categories ?? []).some((c) => categorySlug(c) === filter.category)) : listings;
 }
 
 /**
