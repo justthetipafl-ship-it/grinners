@@ -33,7 +33,7 @@ export function Footer() {
       <ResponsibleGamblingStrip />
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Logo />
+          <Logo tagline />
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-fg">
@@ -47,7 +47,7 @@ export function Footer() {
           Grinners is a discovery directory. We are not a bookmaker and do not take bets. Tips are opinions, not advice, and past
           results do not predict future results. Some links are affiliate links and are labelled where they appear.
         </p>
-        <p>Winners are Grinners. Bet only what you can afford to lose.</p>
+        <p>Bet only what you can afford to lose.</p>
       </div>
     </footer>
   );

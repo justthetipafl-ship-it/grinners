@@ -30,14 +30,17 @@ export function shareImage({ eyebrow, title, subtitle }: { eyebrow: string; titl
               <path d="M21.4 68.9 L21.8 70.4 L22.2 72.0 L22.6 73.6 L23.1 75.1 L23.7 76.6 L24.2 78.1 L24.8 79.6 L25.5 81.0 L26.2 82.4 L27.0 83.8 L27.8 85.2 L28.6 86.5 L29.5 87.8 L30.4 89.0 L31.4 90.2 L32.5 91.3 L33.7 92.4 L34.9 93.4 L36.1 94.3 L37.5 95.1 L38.9 95.9 L40.3 96.6 L41.9 97.1 L43.4 97.5 L45.0 97.8 L46.7 97.9 L48.3 98.0 L50.0 97.9 L51.9 97.8 L53.9 97.5 L55.8 97.2 L57.8 96.7 L59.8 96.2 L61.7 95.6 L63.7 94.8 L65.7 94.0 L67.7 93.1 L69.6 92.2 L71.6 91.1 L73.6 90.0 L75.6 88.8 L77.5 87.5 L79.5 86.1 L81.4 84.7 L83.4 83.1 L85.3 81.5 L87.1 79.7 L89.0 77.9 L90.8 76.0 L92.6 74.0 L94.3 72.0 L96.0 69.8 L97.7 67.6 L99.3 65.3 L100.9 62.9 L102.4 60.5 L102.9 59.2 L102.9 57.8 L102.4 56.6 L101.5 55.6 L100.2 55.1 L98.8 55.1 L97.6 55.6 L96.6 56.5 L94.9 58.7 L93.3 60.8 L91.6 62.8 L89.8 64.6 L88.1 66.4 L86.3 68.1 L84.5 69.8 L82.7 71.3 L80.9 72.7 L79.0 74.1 L77.2 75.3 L75.4 76.6 L73.7 77.7 L71.9 78.8 L70.1 79.8 L68.4 80.7 L66.7 81.5 L65.0 82.3 L63.3 83.0 L61.7 83.6 L60.1 84.1 L58.5 84.6 L57.0 85.0 L55.5 85.3 L54.1 85.6 L52.7 85.8 L51.3 85.9 L50.0 85.9 L49.1 85.9 L48.3 85.9 L47.5 85.7 L46.7 85.6 L46.0 85.3 L45.3 85.1 L44.5 84.8 L43.8 84.5 L43.1 84.1 L42.4 83.6 L41.7 83.1 L41.0 82.5 L40.3 81.9 L39.7 81.2 L39.1 80.4 L38.5 79.6 L37.9 78.7 L37.4 77.7 L36.9 76.7 L36.4 75.7 L36.0 74.6 L35.6 73.5 L35.2 72.3 L34.8 71.2 L34.5 69.9 L34.2 68.7 L33.9 67.4 L33.6 66.1 L32.6 63.8 L30.8 62.2 L28.5 61.3 L26.1 61.4 L23.8 62.4 L22.2 64.2 L21.3 66.5 Z" fill="#ffffff" />
             </g>
           </svg>
-          <div style={{ display: "flex", fontSize: 44, fontWeight: 800, letterSpacing: -1 }}>GRINNERS</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", fontSize: 44, fontWeight: 800, letterSpacing: -1, lineHeight: 1 }}>GRINNERS</div>
+            <div style={{ display: "flex", fontSize: 17, letterSpacing: 5, color: "#9aa3ad" }}>WINNERS ARE GRINNERS</div>
+          </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", fontSize: 30, color: "#22d36b" }}>{eyebrow}</div>
           <div style={{ display: "flex", fontSize: title.length > 40 ? 68 : 88, fontWeight: 800, lineHeight: 1.05, letterSpacing: -2 }}>{title}</div>
           {subtitle && <div style={{ display: "flex", fontSize: 32, color: "#9aa3ad", lineHeight: 1.3 }}>{subtitle.slice(0, 120)}</div>}
         </div>
-        <div style={{ display: "flex", fontSize: 26, color: "#9aa3ad" }}>Winners are Grinners · 18+</div>
+        <div style={{ display: "flex", fontSize: 26, color: "#9aa3ad" }}>18+ only · Bet only what you can afford to lose</div>
       </div>
     ),
     OG_SIZE,

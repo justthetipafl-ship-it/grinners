@@ -73,11 +73,18 @@ export function GrinTick({ size = 14 }: { size?: number }) {
   );
 }
 
-export function Logo() {
+/**
+ * Badge plus wordmark. Pass `tagline` for the fuller lockup used where there is room
+ * (footer, about pages); the header stays compact without it.
+ */
+export function Logo({ tagline = false }: { tagline?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
-      <GrinMark size={30} />
-      <span className="display text-xl uppercase tracking-tight">Grinners</span>
+      <GrinMark size={tagline ? 44 : 30} />
+      <span className="flex flex-col gap-1">
+        <span className={`display uppercase tracking-tight text-fg ${tagline ? "text-2xl" : "text-xl"}`}>Grinners</span>
+        {tagline && <span className="text-[11px] font-medium uppercase leading-none tracking-[0.2em] text-muted">Winners are Grinners</span>}
+      </span>
     </span>
   );
 }
