@@ -114,9 +114,26 @@ export default async function EditListing({ params, searchParams }: Props) {
         <Field label="Bio">
           <textarea name="bio" rows={4} defaultValue={l.bio ?? ""} className={area} />
         </Field>
-        <Field label="Logo or profile image" hint={l.logo_url ? "A logo is already uploaded. Choose a file only to replace it." : "Square image, under 3 MB."}>
+        <Field label="Logo or profile image" hint={l.logo_url ? "A logo is already uploaded. Choose a file only to replace it." : "Square image, under 1.5 MB."}>
           <input name="logo" type="file" accept="image/*" className="text-sm text-muted file:mr-3 file:h-10 file:rounded-control file:border-0 file:bg-raised file:px-4 file:text-fg" />
         </Field>
+        <Field
+          label="Preview image"
+          hint={
+            l.cover_url
+              ? "A preview image is already uploaded. Choose a file only to replace it."
+              : "A screenshot of the tool, a channel banner or show artwork. Wide (16:9) works best, under 1.5 MB."
+          }
+        >
+          <input name="cover" type="file" accept="image/*" className="text-sm text-muted file:mr-3 file:h-10 file:rounded-control file:border-0 file:bg-raised file:px-4 file:text-fg" />
+        </Field>
+        {l.cover_url && (
+          <div className="flex flex-col gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={l.cover_url} alt="Current preview image" className="aspect-video w-full max-w-sm rounded-control border border-line object-cover" />
+            <Check name="remove_cover" label="Remove the preview image" />
+          </div>
+        )}
       </Group>
 
       <Group title="What they cover">

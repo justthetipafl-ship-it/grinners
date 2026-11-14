@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isConfigured, requireAdmin, serverClient } from "@/lib/supabase";
 
+// Two images can be sent in one save, and the host caps a request at about 4.5 MB.
+const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
+
 const text = (form: FormData, name: string) => String(form.get(name) ?? "").trim();
 const lines = (value: string) =>
   value
@@ -122,24 +125,34 @@ export async function saveListing(form: FormData) {
     await supabase.from("affiliate_links").update({ is_active: false }).eq("listing_id", listingId);
   }
 
-  // Logo upload.
-  const logo = form.get("logo");
-  if (logo instanceof File && logo.size > 0) {
-    if (!logo.type.startsWith("image/")) {
-      problems.push("Logo wasn't saved: choose an image file.");
-    } else if (logo.size > 3 * 1024 * 1024) {
-      problems.push("Logo wasn't saved: keep it under 3 MB.");
-    } else {
-      const extension = (logo.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const path = `logos/${listingId}-${Date.now()}.${extension}`;
-      const upload = await supabase.storage.from("images").upload(path, logo, { contentType: logo.type });
-      if (upload.error) {
-        problems.push(`Logo wasn't saved: ${upload.error.message}`);
-      } else {
-        const { data } = supabase.storage.from("images").getPublicUrl(path);
-        await supabase.from("listings").update({ logo_url: data.publicUrl }).eq("id", listingId);
-      }
+  // Image uploads: square logo and wide preview image.
+  for (const [field, folder, column, label] of [
+    ["logo", "logos", "logo_url", "Logo"],
+    ["cover", "covers", "cover_url", "Preview image"],
+  ] as const) {
+    const file = form.get(field);
+    if (!(file instanceof File) || file.size === 0) continue;
+    if (!file.type.startsWith("image/")) {
+      problems.push(`${label} wasn't saved: choose an image file.`);
+      continue;
     }
+    if (file.size > MAX_IMAGE_BYTES) {
+      problems.push(`${label} wasn't saved: keep it under 1.5 MB.`);
+      continue;
+    }
+    const extension = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `${folder}/${listingId}-${Date.now()}.${extension}`;
+    const upload = await supabase.storage.from("images").upload(path, file, { contentType: file.type });
+    if (upload.error) {
+      problems.push(`${label} wasn't saved: ${upload.error.message}`);
+      continue;
+    }
+    const { data } = supabase.storage.from("images").getPublicUrl(path);
+    const { error } = await supabase.from("listings").update({ [column]: data.publicUrl }).eq("id", listingId);
+    if (error) problems.push(`${label} wasn't saved: ${error.message}`);
+  }
+  if (form.get("remove_cover") === "on") {
+    await supabase.from("listings").update({ cover_url: null }).eq("id", listingId);
   }
 
   revalidatePath("/", "layout");

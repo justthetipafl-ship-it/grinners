@@ -38,6 +38,7 @@ function toListing(row: any): Listing {
     bio: row.bio,
     initials: initialsOf(row.name),
     logoUrl: row.logo_url ?? undefined,
+    coverUrl: row.cover_url ?? undefined,
     sports: row.sports ?? [],
     markets: row.markets?.length ? row.markets : undefined,
     category: row.category ?? undefined,

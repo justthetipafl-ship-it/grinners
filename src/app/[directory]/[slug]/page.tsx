@@ -55,6 +55,10 @@ export default async function ListingPage({ params }: Props) {
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1fr_280px]">
         <div className="flex flex-col gap-8">
+          {listing.coverUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={listing.coverUrl} alt={`Preview of ${listing.name}`} className="aspect-video w-full rounded-card border border-line bg-raised object-cover" />
+          )}
           <section>
             <h2 className="mb-2 font-semibold">About</h2>
             <p className="text-muted">{listing.bio}</p>
