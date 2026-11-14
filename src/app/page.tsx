@@ -3,6 +3,7 @@ import { ArticleCard, ContentCard, ListingCard, Monogram, SearchForm, SectionHea
 import { getArticles, getContent, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
 import { DIRECTORIES, type DirectoryKey } from "@/lib/types";
 import { NewsletterForm } from "@/components/PublicForms";
+import { X_HANDLE, X_URL } from "@/lib/site";
 
 // Rebuilt at least hourly so scheduled spotlights and new tips appear without a manual save.
 export const revalidate = 3600;
@@ -143,7 +144,11 @@ export default async function Home() {
                 <Link href="/submit" className="text-fg underline">
                   Suggest them
                 </Link>
-                .
+                , or follow{" "}
+                <a href={X_URL} target="_blank" rel="noopener" className="text-fg underline">
+                  @{X_HANDLE}
+                </a>{" "}
+                on X.
               </p>
             </div>
             <NewsletterForm />

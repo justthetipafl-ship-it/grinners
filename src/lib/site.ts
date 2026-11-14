@@ -4,6 +4,10 @@ export const SITE_URL = (
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
 ).replace(/\/$/, "");
 
-/** Link that opens X with a pre-filled post about a page. */
+/** The Grinners account on X. */
+export const X_HANDLE = "GrinnersHQ";
+export const X_URL = `https://x.com/${X_HANDLE}`;
+
+/** Link that opens X with a pre-filled post about a page, crediting the Grinners account. */
 export const shareToX = (text: string, path: string) =>
-  `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`${SITE_URL}${path}`)}`;
+  `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`${SITE_URL}${path}`)}&via=${X_HANDLE}`;

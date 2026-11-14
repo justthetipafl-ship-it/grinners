@@ -6,7 +6,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AgeGate } from "@/components/AgeGate";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, X_HANDLE } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_AU",
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", site: `@${X_HANDLE}` },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

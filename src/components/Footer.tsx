@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { X_HANDLE, X_URL } from "@/lib/site";
 
 export function ResponsibleGamblingStrip() {
   return (
@@ -47,6 +48,9 @@ export function Footer() {
                 {l.label}
               </Link>
             ))}
+            <a href={X_URL} target="_blank" rel="noopener" className="font-medium text-fg hover:underline">
+              @{X_HANDLE} on X
+            </a>
           </nav>
         </div>
         <p className="max-w-3xl">
@@ -62,7 +66,7 @@ export function Footer() {
           </a>
           <span aria-hidden="true"> · </span>
           <a href={BUILT_BY.x} target="_blank" rel="noopener" className="hover:text-fg hover:underline">
-            Follow on X
+            JustTheTipAUS on X
           </a>
         </p>
       </div>
