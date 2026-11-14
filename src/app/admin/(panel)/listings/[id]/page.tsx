@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { saveListing } from "../../../actions";
+import { deleteListing, saveListing } from "../../../actions";
 import { requireAdmin } from "@/lib/supabase";
 
 const TYPES = [
@@ -70,7 +70,8 @@ export default async function EditListing({ params, searchParams }: Props) {
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
-    <form action={saveListing} className="flex max-w-3xl flex-col gap-5">
+    <div className="flex max-w-3xl flex-col gap-10">
+    <form action={saveListing} className="flex flex-col gap-5">
       <input type="hidden" name="id" value={isNew ? "" : id} />
       <input type="hidden" name="vetted_at" value={l.vetted_at ?? ""} />
 
@@ -233,5 +234,23 @@ export default async function EditListing({ params, searchParams }: Props) {
         <button className="h-11 rounded-control bg-grin px-6 font-semibold text-ink hover:brightness-110">Save</button>
       </div>
     </form>
+
+    {!isNew && (
+      <form action={deleteListing} className="flex flex-col gap-3 rounded-card border border-loss/40 p-5">
+        <input type="hidden" name="id" value={id} />
+        <h2 className="font-semibold">Delete this listing</h2>
+        <p className="text-sm text-muted">
+          This permanently removes the listing, its links, its images, its latest videos or episodes, any spotlights for it, and{" "}
+          <strong className="text-fg">every tip posted under it, including its graded record</strong>. Click counts are kept but no longer
+          tied to a name. It can&apos;t be undone. To hide a listing and keep everything, set it to Archived instead.
+        </p>
+        <label className="flex min-h-10 items-center gap-2 text-sm">
+          <input type="checkbox" name="confirm" className="h-4 w-4 accent-[var(--color-loss)]" />
+          Yes, permanently delete {l.name}
+        </label>
+        <button className="h-11 w-fit rounded-control border border-loss/60 px-5 text-sm font-semibold text-loss hover:bg-loss/10">Delete listing</button>
+      </form>
+    )}
+    </div>
   );
 }

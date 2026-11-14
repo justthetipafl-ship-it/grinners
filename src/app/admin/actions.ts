@@ -422,3 +422,37 @@ export async function deleteTaxonomy(form: FormData) {
       : "/admin/taxonomy?saved=1",
   );
 }
+
+/* ------------------------- Deleting a listing ------------------------- */
+
+/** Path inside the images bucket for a stored image address, or null if it lives elsewhere. */
+function storedImagePath(address: unknown) {
+  if (typeof address !== "string") return null;
+  const marker = "/storage/v1/object/public/images/";
+  const at = address.indexOf(marker);
+  return at === -1 ? null : decodeURIComponent(address.slice(at + marker.length));
+}
+
+export async function deleteListing(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  if (form.get("confirm") !== "on") {
+    redirect(`/admin/listings/${id}?error=${encodeURIComponent("Tick the box to confirm before deleting.")}`);
+  }
+  const { data: listing } = await supabase.from("listings").select("name, logo_url, cover_url").eq("id", id).maybeSingle();
+  if (!listing) redirect("/admin/listings");
+
+  // Its button link would otherwise be left behind, pointing at nothing.
+  await supabase.from("affiliate_links").delete().eq("listing_id", id);
+  const { error } = await supabase.from("listings").delete().eq("id", id);
+  if (error) redirect(`/admin/listings/${id}?error=${encodeURIComponent(`Couldn't delete: ${error.message}`)}`);
+
+  // Tidy up its uploaded images. If this fails the listing is still gone, so it isn't reported.
+  const images = [storedImagePath(listing!.logo_url), storedImagePath(listing!.cover_url)].filter((p): p is string => Boolean(p));
+  if (images.length) await supabase.storage.from("images").remove(images);
+
+  revalidatePath("/", "layout");
+  redirect(`/admin/listings?deleted=${encodeURIComponent(listing!.name)}`);
+}

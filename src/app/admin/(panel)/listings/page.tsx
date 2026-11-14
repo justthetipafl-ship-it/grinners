@@ -8,7 +8,8 @@ const STATUS_STYLE: Record<string, string> = {
   archived: "bg-raised text-muted line-through",
 };
 
-export default async function AdminListings() {
+export default async function AdminListings({ searchParams }: { searchParams: Promise<{ deleted?: string }> }) {
+  const { deleted } = await searchParams;
   const { supabase, isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
 
@@ -25,6 +26,11 @@ export default async function AdminListings() {
           Add a listing
         </Link>
       </div>
+      {deleted && (
+        <p role="status" className="mb-4 rounded-control border border-line bg-surface px-3 py-2 text-sm">
+          Deleted “{deleted}”.
+        </p>
+      )}
       {error && <p className="mb-4 rounded-control border border-loss/50 bg-loss/10 px-3 py-2 text-sm">Couldn&apos;t load listings: {error.message}</p>}
       {listings?.length ? (
         <div className="overflow-x-auto rounded-card border border-line">
