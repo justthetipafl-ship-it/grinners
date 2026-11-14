@@ -51,6 +51,10 @@ Without this, feeds update whenever you press **Refresh feeds** in admin. To hav
 
 `supabase/starter_listings.sql` loads about 30 real tools, podcasts and services as hidden drafts. Run it in the SQL Editor, then open each one under Admin > Listings: it shows a note on what to check, and nothing goes live until you tick the vetting box and publish.
 
+### Platform icons
+
+Profiles show a small icon beside each link (X, YouTube, Spotify and so on). The brand marks come from the open-source Simple Icons package and are shown unaltered, in white, at 24 pixels, each linking only to that platform. The trade marks belong to the platforms and their brand guidelines apply. YouTube asks that uses of its icon be approved through the request form on its brand resources page, and both YouTube and Spotify prefer artwork downloaded from their own sites.
+
 ### Removing sample content
 
 Run these two lines in the SQL Editor:

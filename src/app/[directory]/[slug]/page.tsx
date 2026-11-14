@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chip, ContentCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
 import { getContent, getListing, getListings, getTips, gradedRecord } from "@/lib/data";
+import { PlatformIcon } from "@/components/PlatformIcon";
 import { shareToX } from "@/lib/site";
 import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
 
@@ -137,8 +138,10 @@ export default async function ListingPage({ params }: Props) {
             <ul className="mt-1 flex flex-col">
               {listing.links.map((l) => (
                 <li key={l.url}>
-                  <a href={l.url} target="_blank" rel="noopener" className="flex h-10 items-center justify-between text-sm hover:text-grin">
-                    {l.platform} <span aria-hidden="true">↗</span>
+                  <a href={l.url} target="_blank" rel="noopener" className="flex h-11 items-center gap-3 text-sm hover:text-grin">
+                    <PlatformIcon platform={l.platform} />
+                    <span className="flex-1">{l.platform}</span>
+                    <span aria-hidden="true">↗</span>
                   </a>
                 </li>
               ))}
