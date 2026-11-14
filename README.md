@@ -46,6 +46,10 @@ Without this, feeds update whenever you press **Refresh feeds** in admin. To hav
 - `SUPABASE_SECRET_KEY`: in Supabase, **Project Settings > API Keys**, the **secret** key (older projects: `service_role`). This key can change anything in the database, so it only ever goes here.
 - `CRON_SECRET`: any long random string you make up, 20 characters or more.
 
+### Starter listings (real sites and shows, as drafts)
+
+`supabase/starter_listings.sql` loads about 30 real tools, podcasts and services as hidden drafts. Run it in the SQL Editor, then open each one under Admin > Listings: it shows a note on what to check, and nothing goes live until you tick the vetting box and publish.
+
 ### Removing sample content
 
 Run these two lines in the SQL Editor:

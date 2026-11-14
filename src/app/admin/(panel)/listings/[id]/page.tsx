@@ -92,6 +92,13 @@ export default async function EditListing({ params, searchParams }: Props) {
         </p>
       )}
 
+      {l.attributes?.vet_note && l.status !== "published" && (
+        <div className="rounded-card border border-spotlight/40 bg-spotlight/10 p-4 text-sm">
+          <p className="font-semibold">Before you publish this one</p>
+          <p className="mt-1 text-muted">{l.attributes.vet_note}</p>
+        </div>
+      )}
+
       <Group title="Basics">
         <Field label="Name">
           <input name="name" required defaultValue={l.name ?? ""} className={input} />
