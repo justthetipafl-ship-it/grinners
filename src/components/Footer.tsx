@@ -17,6 +17,13 @@ export function ResponsibleGamblingStrip() {
   );
 }
 
+// Who built Grinners. Change the two addresses here if they ever move.
+const BUILT_BY = {
+  name: "JustTheTipAUS",
+  site: "https://justthetipaus.com",
+  x: "https://x.com/JustTheTipAUS",
+};
+
 const LINKS = [
   { href: "/about", label: "About" },
   { href: "/submit", label: "Suggest a listing" },
@@ -48,6 +55,16 @@ export function Footer() {
           results do not predict future results. Some links are affiliate links and are labelled where they appear.
         </p>
         <p>Bet only what you can afford to lose.</p>
+        <p className="border-t border-line pt-6 text-xs">
+          Built by{" "}
+          <a href={BUILT_BY.site} target="_blank" rel="noopener" className="font-medium text-fg hover:underline">
+            {BUILT_BY.name}
+          </a>
+          <span aria-hidden="true"> · </span>
+          <a href={BUILT_BY.x} target="_blank" rel="noopener" className="hover:text-fg hover:underline">
+            Follow on X
+          </a>
+        </p>
       </div>
     </footer>
   );
