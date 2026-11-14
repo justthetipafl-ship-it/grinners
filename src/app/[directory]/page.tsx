@@ -16,7 +16,15 @@ export const generateStaticParams = () => Object.keys(DIRECTORIES).map((director
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { directory } = await params;
   const dir = DIRECTORIES[directory as DirectoryKey];
-  return dir ? { title: dir.title, description: dir.blurb } : {};
+  if (!dir) return {};
+  // Search engines see both the Australian and the US term for the tipsters directory.
+  if (directory === "tipsters") {
+    return {
+      title: "Tipsters and cappers",
+      description: "Find sports betting tipsters and cappers across AFL, NRL, racing, NBA, NFL and MLB. Free and paid, vetted before they're listed.",
+    };
+  }
+  return { title: dir.title, description: dir.blurb };
 }
 
 const PRICING: { value: PricingModel; label: string }[] = [

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s · Grinners",
   },
   description:
-    "Discover sports betting tipsters, fantasy creators, tools, podcasts and YouTube channels across Australian and US sport. 18+ only.",
+    "Discover sports betting tipsters and cappers, fantasy creators, tools, podcasts and YouTube channels across Australian and US sport. 18+ only.",
   openGraph: {
     siteName: "Grinners",
     type: "website",

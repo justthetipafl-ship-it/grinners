@@ -76,7 +76,7 @@ export type Spotlight = {
 };
 
 export const DIRECTORIES = {
-  tipsters: { type: "tipster", title: "Tipsters", blurb: "Cappers and tipsters, free and paid, vetted before they're listed." },
+  tipsters: { type: "tipster", title: "Tipsters", blurb: "Tipsters and cappers, free and paid, vetted before they're listed." },
   tools: { type: "tool", title: "Tools", blurb: "Research, analytics and tracking tools for punters and fantasy players." },
   podcasts: { type: "podcast", title: "Podcasts", blurb: "Betting and fantasy shows worth your commute." },
   youtube: { type: "youtube", title: "YouTube", blurb: "Channels breaking down the slate, the stats and the strategy." },
