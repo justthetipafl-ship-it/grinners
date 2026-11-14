@@ -7,8 +7,6 @@ import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
 
 type Props = { params: Promise<{ directory: string; slug: string }> };
 
-export const dynamicParams = false;
-
 export async function generateStaticParams() {
   const listings = await getListings();
   return listings.map((l) => ({ directory: directoryForType(l.types[0]), slug: l.slug }));
@@ -24,7 +22,8 @@ export default async function ListingPage({ params }: Props) {
   const { directory, slug } = await params;
   const dir = DIRECTORIES[directory as DirectoryKey];
   const listing = await getListing(slug);
-  if (!dir || !listing) notFound();
+  // A profile lives under the directory of its first type only, so there is one address per listing.
+  if (!dir || !listing || directoryForType(listing.types[0]) !== directory) notFound();
 
   const tips = await getTips({ listingSlug: slug });
   const record = gradedRecord(tips);

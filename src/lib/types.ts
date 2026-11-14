@@ -12,6 +12,7 @@ export type Listing = {
   bio: string;
   /** Two-letter monogram shown until a real logo is uploaded. */
   initials: string;
+  logoUrl?: string;
   sports: string[];
   markets?: string[];
   category?: string;

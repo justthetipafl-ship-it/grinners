@@ -71,6 +71,7 @@ export default async function Home() {
           </section>
         )}
 
+        {featured.length > 0 && (
         <section>
           <SectionHeading title="Featured" href="/creators" linkLabel="All creators" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -79,7 +80,9 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
 
+        {tips.length > 0 && (
         <section>
           <SectionHeading title="Latest free tips" href="/tips" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -88,7 +91,9 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
 
+        {tools.length > 0 && (
         <section>
           <SectionHeading title="Popular tools" href="/tools" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -97,7 +102,9 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
 
+        {articles.length > 0 && (
         <section>
           <SectionHeading title="Latest articles" href="/articles" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -106,6 +113,7 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
       </div>
     </>
   );

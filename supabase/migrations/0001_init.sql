@@ -62,6 +62,12 @@ create table listings (
   website_url text,
   pricing pricing_model not null default 'free',
   pricing_note text,
+  -- Sport and market slugs this listing covers, e.g. {afl,nba}. Kept as simple
+  -- lists so filtering and the admin form stay straightforward.
+  sports text[] not null default '{}',
+  markets text[] not null default '{}',
+  category text,
+  features text[] not null default '{}',
   attributes jsonb not null default '{}',
   status publish_status not null default 'draft',
   is_featured boolean not null default false,
@@ -81,6 +87,7 @@ create table listings (
 create index listings_search_idx on listings using gin (search);
 create index listings_name_trgm_idx on listings using gin (name gin_trgm_ops);
 create index listings_types_idx on listings using gin (types);
+create index listings_sports_idx on listings using gin (sports);
 
 create table listing_links (
   id uuid primary key default gen_random_uuid(),
@@ -89,14 +96,6 @@ create table listing_links (
   url text not null,
   sort_order int not null default 0
 );
-
-create table listing_tags (
-  listing_id uuid not null references listings (id) on delete cascade,
-  tag_type text not null check (tag_type in ('sport', 'competition', 'market', 'category')),
-  tag_id uuid not null,
-  primary key (listing_id, tag_type, tag_id)
-);
-create index listing_tags_lookup_idx on listing_tags (tag_type, tag_id);
 
 -- ---------- Affiliate links and clicks ----------
 create table affiliate_links (
@@ -109,6 +108,8 @@ create table affiliate_links (
   utm_medium text default 'referral',
   utm_campaign text,
   partner_note text,
+  -- False for a plain outbound link that earns nothing but is still click-tracked.
+  is_affiliate boolean not null default true,
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -249,12 +250,12 @@ create table subscribers (
 
 -- ---------- Access rules ----------
 -- Visitors can read published content only. Admins can do everything.
--- Clicks are written by the server using the service key, which bypasses these rules.
+-- Anyone can add a click row (that is how /go links are counted) but only admins can read them.
 do $$
 declare t text;
 begin
   foreach t in array array[
-    'admins','sports','competitions','markets','categories','listings','listing_links','listing_tags',
+    'admins','sports','competitions','markets','categories','listings','listing_links',
     'affiliate_links','clicks','tips','articles','article_listings','spotlights','content_items',
     'submissions','subscribers'
   ] loop
@@ -273,16 +274,25 @@ create policy public_read on articles     for select using (status = 'published'
 create policy public_read on spotlights   for select using (current_date between starts_on and ends_on);
 create policy public_read on listing_links for select using (
   exists (select 1 from listings l where l.id = listing_id and l.status = 'published'));
-create policy public_read on listing_tags for select using (
-  exists (select 1 from listings l where l.id = listing_id and l.status = 'published'));
 create policy public_read on content_items for select using (
   exists (select 1 from listings l where l.id = listing_id and l.status = 'published'));
 create policy public_read on article_listings for select using (
   exists (select 1 from articles a where a.id = article_id and a.status = 'published'));
 create policy public_read on affiliate_links for select using (is_active);
 
+create policy public_insert on clicks for insert with check (true);
 create policy public_insert on submissions for insert with check (status = 'new' and review_note is null);
 create policy public_insert on subscribers for insert with check (confirmed_at is null);
+
+-- ---------- Image storage ----------
+-- One public bucket for logos and cover images. Anyone can view, only admins can upload.
+insert into storage.buckets (id, name, public) values ('images', 'images', true)
+on conflict (id) do nothing;
+
+create policy images_admin_write on storage.objects for all
+  using (bucket_id = 'images' and public.is_admin())
+  with check (bucket_id = 'images' and public.is_admin());
+create policy images_public_read on storage.objects for select using (bucket_id = 'images');
 
 -- ---------- Starting taxonomy ----------
 insert into sports (slug, name, sort_order) values

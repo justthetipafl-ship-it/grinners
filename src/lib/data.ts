@@ -1,8 +1,9 @@
 /**
- * Data access layer. Pages only ever call these functions, so switching from
- * sample content to Supabase later means changing this one file.
+ * Data access layer. Pages only ever call these functions.
+ * With Supabase connected they read the database; without it they read sample content.
  */
 import * as sample from "@/data/sample";
+import { isConfigured, publicClient } from "./supabase";
 import type { Article, Listing, ListingType, PricingModel, Spotlight, Sport, Tip } from "./types";
 
 export type ListingFilter = {
@@ -13,43 +14,165 @@ export type ListingFilter = {
   featured?: boolean;
 };
 
+export const initialsOf = (name: string) =>
+  name
+    .replace(/[^A-Za-z0-9 ]/g, "")
+    .split(/\s+/)
+    .filter((w) => w && !["the", "and", "of"].includes(w.toLowerCase()))
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("") || "G";
+
+function warn(what: string, error: { message: string } | null) {
+  if (error) console.error(`[data] ${what}: ${error.message}`);
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- rows arrive from the database untyped */
+function toListing(row: any): Listing {
+  const link = (row.affiliate_links ?? []).find((a: any) => a.is_active);
+  return {
+    slug: row.slug,
+    name: row.name,
+    types: row.types,
+    tagline: row.tagline,
+    bio: row.bio,
+    initials: initialsOf(row.name),
+    logoUrl: row.logo_url ?? undefined,
+    sports: row.sports ?? [],
+    markets: row.markets?.length ? row.markets : undefined,
+    category: row.category ?? undefined,
+    pricing: row.pricing,
+    pricingNote: row.pricing_note ?? undefined,
+    links: [...(row.listing_links ?? [])]
+      .sort((a: any, b: any) => a.sort_order - b.sort_order)
+      .map((l: any) => ({ platform: l.platform, url: l.url })),
+    cta: link ? { label: link.label, url: `/go/${link.slug}`, affiliate: link.is_affiliate } : undefined,
+    isFeatured: row.is_featured,
+    isSponsored: row.is_sponsored,
+    ownershipDisclosure: row.ownership_disclosure ?? undefined,
+    features: row.features?.length ? row.features : undefined,
+  };
+}
+
+function toTip(row: any): Tip {
+  return {
+    id: row.id,
+    listingSlug: row.listings?.slug ?? "",
+    sport: row.sports?.slug ?? "",
+    competition: row.competitions?.name ?? row.sports?.name ?? "",
+    event: row.event_name,
+    eventStart: row.event_start,
+    market: row.markets?.name ?? row.market_label ?? "",
+    selection: row.selection,
+    odds: Number(row.odds),
+    bookmaker: row.bookmaker ?? undefined,
+    analysis: row.analysis,
+    result: row.result,
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+const LISTING_COLUMNS = "*, listing_links(platform, url, sort_order), affiliate_links(slug, label, is_affiliate, is_active)";
+
 export async function getSports(): Promise<Sport[]> {
-  return sample.sports;
+  if (!isConfigured) return sample.sports;
+  const { data, error } = await publicClient().from("sports").select("slug, name").order("sort_order");
+  warn("sports", error);
+  return data ?? [];
 }
 
 export async function getListings(filter: ListingFilter = {}): Promise<Listing[]> {
   const q = filter.q?.trim().toLowerCase();
-  return sample.listings.filter((l) => {
-    if (filter.type && !l.types.includes(filter.type)) return false;
-    if (filter.sport && !l.sports.includes(filter.sport)) return false;
-    if (filter.pricing && l.pricing !== filter.pricing) return false;
-    if (filter.featured && !l.isFeatured) return false;
-    if (q) {
-      const haystack = [l.name, l.tagline, l.bio, l.category ?? "", ...l.sports, ...(l.markets ?? [])]
-        .join(" ")
-        .toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
+
+  if (!isConfigured) {
+    return sample.listings.filter((l) => {
+      if (filter.type && !l.types.includes(filter.type)) return false;
+      if (filter.sport && !l.sports.includes(filter.sport)) return false;
+      if (filter.pricing && l.pricing !== filter.pricing) return false;
+      if (filter.featured && !l.isFeatured) return false;
+      if (q) {
+        const haystack = [l.name, l.tagline, l.bio, l.category ?? "", ...l.sports, ...(l.markets ?? [])].join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  let query = publicClient().from("listings").select(LISTING_COLUMNS).eq("status", "published");
+  if (filter.type) query = query.contains("types", [filter.type]);
+  if (filter.sport) query = query.contains("sports", [filter.sport]);
+  if (filter.pricing) query = query.eq("pricing", filter.pricing);
+  if (filter.featured) query = query.eq("is_featured", true);
+  if (q) {
+    // Strip characters that have special meaning in the filter syntax.
+    const safe = q.replace(/[^a-z0-9 &'-]/g, " ").trim();
+    if (!safe) return [];
+    const slugLike = safe.replace(/\s+/g, "-");
+    query = query.or(`name.ilike.%${safe}%,tagline.ilike.%${safe}%,bio.ilike.%${safe}%,category.ilike.%${safe}%,sports.cs.{${slugLike}}`);
+  }
+  const { data, error } = await query.order("is_featured", { ascending: false }).order("name");
+  warn("listings", error);
+  return (data ?? []).map(toListing);
 }
 
 export async function getListing(slug: string): Promise<Listing | undefined> {
-  return sample.listings.find((l) => l.slug === slug);
+  if (!isConfigured) return sample.listings.find((l) => l.slug === slug);
+  const { data, error } = await publicClient().from("listings").select(LISTING_COLUMNS).eq("status", "published").eq("slug", slug).maybeSingle();
+  warn("listing", error);
+  return data ? toListing(data) : undefined;
 }
 
 export async function getTips(filter: { sport?: string; listingSlug?: string } = {}): Promise<Tip[]> {
-  return sample.tips
-    .filter((t) => (!filter.sport || t.sport === filter.sport) && (!filter.listingSlug || t.listingSlug === filter.listingSlug))
-    .sort((a, b) => b.eventStart.localeCompare(a.eventStart));
+  if (!isConfigured) {
+    return sample.tips
+      .filter((t) => (!filter.sport || t.sport === filter.sport) && (!filter.listingSlug || t.listingSlug === filter.listingSlug))
+      .sort((a, b) => b.eventStart.localeCompare(a.eventStart));
+  }
+  let query = publicClient()
+    .from("tips")
+    .select("*, listings!inner(slug), sports!inner(slug, name), competitions(name), markets(name)")
+    .eq("status", "published");
+  if (filter.sport) query = query.eq("sports.slug", filter.sport);
+  if (filter.listingSlug) query = query.eq("listings.slug", filter.listingSlug);
+  const { data, error } = await query.order("event_start", { ascending: false }).limit(60);
+  warn("tips", error);
+  return (data ?? []).map(toTip);
 }
 
 export async function getArticles(): Promise<Article[]> {
-  return sample.articles;
+  if (!isConfigured) return sample.articles;
+  const { data, error } = await publicClient()
+    .from("articles")
+    .select("slug, title, excerpt, author_name, published_at, is_sponsored, categories(name)")
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(30);
+  warn("articles", error);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((a: any) => ({
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    category: a.categories?.name ?? "Article",
+    author: a.author_name,
+    publishedAt: a.published_at,
+    isSponsored: a.is_sponsored,
+  }));
 }
 
 export async function getSpotlight(): Promise<Spotlight | undefined> {
-  return sample.spotlight;
+  if (!isConfigured) return sample.spotlight;
+  const { data, error } = await publicClient()
+    .from("spotlights")
+    .select("kind, headline, body, is_sponsored, listings!inner(slug)")
+    .order("starts_on", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  warn("spotlight", error);
+  if (!data) return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as any;
+  return { kind: row.kind, listingSlug: row.listings.slug, headline: row.headline, body: row.body, isSponsored: row.is_sponsored };
 }
 
 /** Record from tips graded on Grinners only. Never mixes in a creator's own claims. */

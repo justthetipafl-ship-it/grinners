@@ -4,24 +4,41 @@ Winners are Grinners. A discovery directory for sports betting and fantasy tipst
 
 ## Where things stand
 
-**Built (phases 1 to 3, public site on sample content)**
+**Built**
 
+- Public site: homepage, five directories with filters, profile pages, free tips feed, articles index, search
 - Site shell: header, footer, 18+ gate, responsible-gambling strip
-- Homepage
-- Five directories with sport and price filters: `/tipsters`, `/tools`, `/podcasts`, `/youtube`, `/creators`
-- Listing profile pages, with affiliate and sponsored labels
-- Free tips feed, articles index, search
-- Database schema, ready to paste into Supabase: `supabase/migrations/0001_init.sql`
+- Database schema: `supabase/migrations/0001_init.sql`
+- Admin dashboard at `/admin`: sign in, overview with click counts, add and edit listings, logo upload, publish, feature and sponsor toggles, vetting checklist
+- Click tracking: a listing's main button goes through `/go/<slug>`, which counts the click and forwards the visitor
 
 **Not built yet**
 
-- Supabase connection (the site currently reads `src/data/sample.ts`)
-- Admin dashboard
-- `/go/[slug]` click tracking
+- Admin screens for tips, articles, spotlights and sports/categories (these can be edited in Supabase's Table Editor meanwhile)
 - Individual article pages, spotlights archive, suggest-a-listing form, newsletter sign-up
 - Terms, privacy and editorial policy pages
 
-All names and results in `src/data/sample.ts` are invented.
+Until the database is connected the site shows the invented sample content in `src/data/sample.ts`.
+
+## Connecting the database (one-off, all in the browser)
+
+1. **Create the tables.** In Supabase open **SQL Editor**, paste the whole of `supabase/migrations/0001_init.sql`, press **Run**.
+2. **Optional sample content.** Paste and run `supabase/sample_data.sql` the same way to see the site populated.
+3. **Create your login.** In Supabase open **Authentication > Users > Add user**. Enter your email and a strong password, and tick **Auto Confirm User**.
+4. **Give Vercel the two settings.** In Supabase open **Project Settings > API Keys** (the project URL is under **Data API**). In Vercel open the project, then **Settings > Environment Variables**, and add:
+   - `NEXT_PUBLIC_SUPABASE_URL`: the project URL, like `https://abcd1234.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: the **publishable** key (older projects call it the `anon` key). Never the secret or `service_role` key.
+5. **Redeploy.** In Vercel open **Deployments**, press the three dots on the latest one, choose **Redeploy**.
+6. **Make yourself an admin.** Go to `/admin` on the live site and sign in. The page shows one line of SQL with your user ID. Paste it into Supabase's SQL Editor, run it, reload.
+
+### Removing sample content
+
+Run these two lines in the SQL Editor:
+
+```sql
+delete from listings where attributes->>'sample' = 'true';
+delete from articles where seo_description = 'sample';
+```
 
 ## Putting it live with Vercel (no terminal needed)
 

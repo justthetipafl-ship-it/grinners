@@ -18,6 +18,11 @@ export function DisclosureBadge({ kind }: { kind: "Sponsored" | "Affiliate link"
 
 export function Monogram({ listing, size = "md" }: { listing: Listing; size?: "md" | "lg" }) {
   const box = size === "lg" ? "h-20 w-20 text-2xl" : "h-12 w-12 text-sm";
+  if (listing.logoUrl) {
+    // Logos are uploaded to Supabase storage; a plain img avoids per-domain image configuration.
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={listing.logoUrl} alt="" className={`${box} shrink-0 rounded-card border border-line bg-raised object-cover`} />;
+  }
   return (
     <span className={`${box} display flex shrink-0 items-center justify-center rounded-card border border-line bg-raised text-fg`} aria-hidden="true">
       {listing.initials}
