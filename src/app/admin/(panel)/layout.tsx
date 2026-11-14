@@ -29,6 +29,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/articles" className="text-muted hover:text-fg">
               Articles
             </Link>
+            <Link href="/admin/spotlights" className="text-muted hover:text-fg">
+              Spotlights
+            </Link>
+            <Link href="/admin/submissions" className="text-muted hover:text-fg">
+              Suggestions
+            </Link>
           </>
         )}
         <form action={logout} className="ml-auto flex items-center gap-3">

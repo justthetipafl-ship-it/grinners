@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DisclosureBadge } from "@/components/Cards";
 import { getArticle } from "@/lib/data";
+import { shareToX } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -62,7 +63,7 @@ export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) notFound();
-  const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(article.title)}`;
+  const shareUrl = shareToX(article.title, `/articles/${slug}`);
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-10">

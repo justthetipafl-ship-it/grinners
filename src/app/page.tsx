@@ -2,6 +2,10 @@ import Link from "next/link";
 import { ArticleCard, ListingCard, Monogram, SearchForm, SectionHeading, TipCard, listingHref, DisclosureBadge } from "@/components/Cards";
 import { getArticles, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
 import { DIRECTORIES, type DirectoryKey } from "@/lib/types";
+import { NewsletterForm } from "@/components/PublicForms";
+
+// Rebuilt at least hourly so scheduled spotlights and new tips appear without a manual save.
+export const revalidate = 3600;
 
 export default async function Home() {
   const [featured, tools, tips, articles, spotlight, sports, all] = await Promise.all([
@@ -32,7 +36,7 @@ export default async function Home() {
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {sports.map((s) => (
-              <Link key={s.slug} href={`/search?q=${s.slug}`} className="rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm text-muted hover:text-fg">
+              <Link key={s.slug} href={`/sports/${s.slug}`} className="rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm text-muted hover:text-fg">
                 {s.name}
               </Link>
             ))}
@@ -114,6 +118,22 @@ export default async function Home() {
           </div>
         </section>
         )}
+
+        <section id="newsletter" className="glow rounded-card border border-line bg-surface p-6 sm:p-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="display text-2xl sm:text-3xl">New creators and tools, weekly</h2>
+              <p className="mt-1 max-w-xl text-muted">
+                One email a week with the latest spotlight and what&apos;s new in the directory. No tips spam. Know someone we should list?{" "}
+                <Link href="/submit" className="text-fg underline">
+                  Suggest them
+                </Link>
+                .
+              </p>
+            </div>
+            <NewsletterForm />
+          </div>
+        </section>
       </div>
     </>
   );

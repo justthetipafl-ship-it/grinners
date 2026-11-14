@@ -17,11 +17,13 @@ export default async function AdminHome() {
   if (!isAdmin) return null;
 
   const count = (table: string) => supabase.from(table).select("*", { count: "exact", head: true });
-  const [published, drafts, clicks7, clicks30, recent] = await Promise.all([
+  const [published, drafts, clicks7, clicks30, subscribers, suggestions, recent] = await Promise.all([
     count("listings").eq("status", "published"),
     count("listings").in("status", ["draft", "pending"]),
     count("clicks").gte("created_at", daysAgo(7)),
     count("clicks").gte("created_at", daysAgo(30)),
+    count("subscribers"),
+    count("submissions").eq("status", "new"),
     supabase.from("clicks").select("listing_id, listings(name)").gte("created_at", daysAgo(30)).limit(5000),
   ]);
 
@@ -41,6 +43,8 @@ export default async function AdminHome() {
         <Stat label="Drafts and pending" value={drafts.count} />
         <Stat label="Outbound clicks, 7 days" value={clicks7.count} />
         <Stat label="Outbound clicks, 30 days" value={clicks30.count} />
+        <Stat label="Newsletter sign-ups" value={subscribers.count} />
+        <Stat label="Suggestions to review" value={suggestions.count} />
       </div>
 
       <section>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chip, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
 import { getListing, getListings, getTips, gradedRecord } from "@/lib/data";
+import { shareToX } from "@/lib/site";
 import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
 
 type Props = { params: Promise<{ directory: string; slug: string }> };
@@ -27,7 +28,7 @@ export default async function ListingPage({ params }: Props) {
 
   const tips = await getTips({ listingSlug: slug });
   const record = gradedRecord(tips);
-  const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(`${listing.name} on Grinners`)}`;
+  const shareUrl = shareToX(`${listing.name} on Grinners`, `/${directory}/${slug}`);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">

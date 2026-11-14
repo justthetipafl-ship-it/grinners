@@ -18,7 +18,12 @@ export function ResponsibleGamblingStrip() {
 }
 
 const LINKS = [
+  { href: "/about", label: "About" },
+  { href: "/submit", label: "Suggest a listing" },
   { href: "/how-we-make-money", label: "How we make money" },
+  { href: "/editorial-policy", label: "Editorial policy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
   { href: "/responsible-gambling", label: "Responsible gambling" },
 ];
 

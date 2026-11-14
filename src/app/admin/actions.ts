@@ -283,3 +283,75 @@ export async function saveArticle(form: FormData) {
   revalidatePath("/", "layout");
   redirect(`/admin/articles/${saved.data!.id}?saved=1`);
 }
+
+/* --------------------------- Spotlights --------------------------- */
+
+export async function saveSpotlight(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  const fail = (message: string): never => redirect(`/admin/spotlights/${id || "new"}?error=${encodeURIComponent(message)}`);
+  const row = {
+    kind: text(form, "kind") || "Creator Spotlight",
+    listing_id: text(form, "listing_id"),
+    headline: text(form, "headline"),
+    body: text(form, "body"),
+    starts_on: text(form, "starts_on"),
+    ends_on: text(form, "ends_on"),
+    is_sponsored: form.get("is_sponsored") === "on",
+  };
+  if (!row.listing_id) fail("Choose the listing to spotlight.");
+  if (!row.headline) fail("Give the spotlight a headline.");
+  if (!row.starts_on || !row.ends_on) fail("Set the start and end dates.");
+  if (row.ends_on < row.starts_on) fail("The end date is before the start date.");
+
+  const saved = id ? await supabase.from("spotlights").update(row).eq("id", id) : await supabase.from("spotlights").insert(row);
+  if (saved.error) fail(saved.error.message);
+  revalidatePath("/", "layout");
+  redirect("/admin/spotlights?saved=1");
+}
+
+export async function deleteSpotlight(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+  await supabase.from("spotlights").delete().eq("id", text(form, "id"));
+  revalidatePath("/", "layout");
+  redirect("/admin/spotlights");
+}
+
+/* --------------------------- Submissions -------------------------- */
+
+export async function reviewSubmission(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  const decision = text(form, "decision");
+  if (decision === "reject") {
+    await supabase.from("submissions").update({ status: "rejected" }).eq("id", id);
+    redirect("/admin/submissions");
+  }
+
+  // Approve: start a draft listing from the suggestion, then open it for editing and vetting.
+  const { data: submission } = await supabase.from("submissions").select("payload").eq("id", id).maybeSingle();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = (submission?.payload ?? {}) as any;
+  const name = String(payload.name ?? "").trim();
+  if (!name) redirect("/admin/submissions");
+  const allowed = ["tipster", "tool", "podcast", "youtube", "creator"];
+  const created = await supabase
+    .from("listings")
+    .insert({
+      name,
+      slug: `${slugify(name)}-${id.slice(0, 4)}`,
+      types: [allowed.includes(payload.type) ? payload.type : "creator"],
+      website_url: typeof payload.url === "string" ? payload.url : null,
+      status: "draft",
+    })
+    .select("id")
+    .single();
+  if (created.error || !created.data) redirect(`/admin/submissions?error=${encodeURIComponent(created.error?.message ?? "Couldn't create the draft.")}`);
+  await supabase.from("submissions").update({ status: "approved" }).eq("id", id);
+  redirect(`/admin/listings/${created.data!.id}`);
+}

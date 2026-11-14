@@ -6,17 +6,20 @@ Winners are Grinners. A discovery directory for sports betting and fantasy tipst
 
 **Built**
 
-- Public site: homepage, five directories with filters, profile pages, free tips feed, articles index, search
+- Public site: homepage, five directories with filters, profile pages with preview images, sport hubs (`/sports/afl`), free tips feed, articles, search
+- Suggest-a-listing form (`/submit`) and newsletter sign-up
+- Trust pages: about, how we make money, editorial policy, responsible gambling, terms, privacy (all draft wording for legal review)
 - Site shell: header, footer, 18+ gate, responsible-gambling strip
-- Database schema: `supabase/migrations/0001_init.sql`
-- Admin dashboard at `/admin`: sign in, overview with click counts, add and edit listings, logo upload, publish, feature and sponsor toggles, vetting checklist
+- Search-engine and sharing groundwork: sitemap, robots file, a generated share image for every listing and article, Share to X buttons
+- Admin dashboard at `/admin`: overview with click, sign-up and suggestion counts; listings; tips with grading; articles; spotlight scheduling; suggestion review
 - Click tracking: a listing's main button goes through `/go/<slug>`, which counts the click and forwards the visitor
 
 **Not built yet**
 
-- Admin screens for tips, articles, spotlights and sports/categories (these can be edited in Supabase's Table Editor meanwhile)
-- Individual article pages, spotlights archive, suggest-a-listing form, newsletter sign-up
-- Terms, privacy and editorial policy pages
+- Automatic latest episodes and videos from podcast and YouTube feeds
+- Sending the newsletter (sign-ups are collected; sending needs an email service)
+- Admin screen for sports, markets and categories (editable in Supabase's Table Editor meanwhile)
+- Past-spotlights archive, creator logins
 
 Until the database is connected the site shows the invented sample content in `src/data/sample.ts`.
 
