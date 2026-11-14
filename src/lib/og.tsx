@@ -1,9 +1,14 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
 /** Share image used when a Grinners link is posted to X and elsewhere. */
-export function shareImage({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
+// The same heading typeface as the site (Archivo, heavy and slightly expanded), so share images match the header.
+const headingFont = readFile(join(process.cwd(), "src/assets/fonts/Archivo-SemiExpanded-ExtraBold.ttf"));
+
+export async function shareImage({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
   return new ImageResponse(
     (
       <div
@@ -31,18 +36,18 @@ export function shareImage({ eyebrow, title, subtitle }: { eyebrow: string; titl
             </g>
           </svg>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", fontSize: 44, fontWeight: 800, letterSpacing: -1, lineHeight: 1 }}>GRINNERS</div>
+            <div style={{ display: "flex", fontFamily: "Archivo", fontSize: 44, fontWeight: 800, letterSpacing: -1, lineHeight: 1 }}>GRINNERS</div>
             <div style={{ display: "flex", fontSize: 17, letterSpacing: 5, color: "#9aa3ad" }}>WINNERS ARE GRINNERS</div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", fontSize: 30, color: "#22d36b" }}>{eyebrow}</div>
-          <div style={{ display: "flex", fontSize: title.length > 40 ? 68 : 88, fontWeight: 800, lineHeight: 1.05, letterSpacing: -2 }}>{title}</div>
+          <div style={{ display: "flex", fontFamily: "Archivo", fontSize: title.length > 40 ? 60 : title.length > 22 ? 76 : 88, fontWeight: 800, lineHeight: 1.05, letterSpacing: -2 }}>{title}</div>
           {subtitle && <div style={{ display: "flex", fontSize: 32, color: "#9aa3ad", lineHeight: 1.3 }}>{subtitle.slice(0, 120)}</div>}
         </div>
         <div style={{ display: "flex", fontSize: 26, color: "#9aa3ad" }}>18+ only · Bet only what you can afford to lose</div>
       </div>
     ),
-    OG_SIZE,
+    { ...OG_SIZE, fonts: [{ name: "Archivo", data: await headingFont, weight: 800, style: "normal" }] },
   );
 }
