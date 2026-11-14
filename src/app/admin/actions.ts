@@ -464,3 +464,53 @@ export async function deleteListing(form: FormData) {
   revalidatePath("/", "layout");
   redirect(`/admin/listings?deleted=${encodeURIComponent(listing!.name)}`);
 }
+
+/* ------------------------- Featured order ------------------------- */
+
+/** Featured listings in their current homepage order: hand-set positions first, then most recently updated. */
+async function featuredInOrder(supabase: Awaited<ReturnType<typeof serverClient>>) {
+  const { data } = await supabase
+    .from("listings")
+    .select("id, name, status, attributes, updated_at")
+    .eq("is_featured", true)
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rows = (data ?? []) as any[];
+  const position = (row: { attributes?: { featured_order?: number } }) =>
+    typeof row.attributes?.featured_order === "number" ? row.attributes.featured_order : Number.MAX_SAFE_INTEGER;
+  return rows.sort((a, b) => position(a) - position(b));
+}
+
+export async function moveFeatured(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  const move = text(form, "move"); // up | down | top | remove
+  const rows = await featuredInOrder(supabase);
+  const from = rows.findIndex((r) => r.id === id);
+  if (from === -1) redirect("/admin/featured");
+
+  if (move === "remove") {
+    const attributes = { ...(rows[from].attributes ?? {}) };
+    delete attributes.featured_order;
+    await supabase.from("listings").update({ is_featured: false, attributes }).eq("id", id);
+    rows.splice(from, 1);
+  } else {
+    const to = move === "top" ? 0 : move === "up" ? Math.max(0, from - 1) : Math.min(rows.length - 1, from + 1);
+    const [row] = rows.splice(from, 1);
+    rows.splice(to, 0, row);
+  }
+
+  // Write every position, so the order on screen is exactly what is stored.
+  await Promise.all(
+    rows.map((row, index) =>
+      row.attributes?.featured_order === index + 1
+        ? null
+        : supabase.from("listings").update({ attributes: { ...(row.attributes ?? {}), featured_order: index + 1 } }).eq("id", row.id),
+    ),
+  );
+  revalidatePath("/", "layout");
+  redirect("/admin/featured");
+}

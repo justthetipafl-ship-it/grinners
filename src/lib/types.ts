@@ -25,6 +25,8 @@ export type Listing = {
   /** Main outbound button. `affiliate` adds the disclosure badge and rel="sponsored". */
   cta?: { label: string; url: string; affiliate: boolean };
   isFeatured?: boolean;
+  /** Hand-set position among featured listings; lower shows first. */
+  featuredOrder?: number;
   isSponsored?: boolean;
   ownershipDisclosure?: string;
   features?: string[];

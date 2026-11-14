@@ -63,6 +63,7 @@ function toListing(row: any): Listing {
       .map((l: any) => ({ platform: l.platform, url: l.url })),
     cta: link ? { label: link.label, url: `/go/${link.slug}`, affiliate: link.is_affiliate } : undefined,
     isFeatured: row.is_featured,
+    featuredOrder: typeof row.attributes?.featured_order === "number" ? row.attributes.featured_order : undefined,
     isSponsored: row.is_sponsored,
     ownershipDisclosure: row.ownership_disclosure ?? undefined,
     features: row.features?.length ? row.features : undefined,
@@ -130,7 +131,9 @@ export async function getListings(filter: ListingFilter = {}): Promise<Listing[]
     ? await query.order("updated_at", { ascending: false })
     : await query.order("is_featured", { ascending: false }).order("name");
   warn("listings", error);
-  const listings = (data ?? []).map(toListing);
+  // Featured listings lead, in the order set under Admin > Featured order. Everything else keeps the query's order.
+  const place = (l: Listing) => (l.isFeatured ? (l.featuredOrder ?? Number.MAX_SAFE_INTEGER - 1) : Number.MAX_SAFE_INTEGER);
+  const listings = (data ?? []).map(toListing).sort((a, b) => place(a) - place(b));
   return filter.category ? listings.filter((l) => (l.categories ?? []).some((c) => categorySlug(c) === filter.category)) : listings;
 }
 
@@ -290,7 +293,7 @@ export async function getContent(
 ): Promise<ContentItem[]> {
   if (!isConfigured) return [];
   const limit = filter.limit ?? 6;
-  let query = publicClient().from("content_items").select("kind, title, url, thumbnail_url, published_at, listings!inner(name, slug, is_featured)");
+  let query = publicClient().from("content_items").select("kind, title, url, thumbnail_url, published_at, listings!inner(name, slug, is_featured, attributes)");
   if (filter.listingSlug) query = query.eq("listings.slug", filter.listingSlug);
   if (filter.kind) query = query.eq("kind", filter.kind);
   const { data, error } = await query.order("published_at", { ascending: false }).limit(filter.onePerListing ? 120 : limit);
@@ -301,7 +304,9 @@ export async function getContent(
     const seen = new Set<string>();
     rows = rows.filter((row) => !seen.has(row.listings?.slug) && seen.add(row.listings?.slug));
     // Featured listings first; within each group the newest stays first.
-    rows = [...rows.filter((r) => r.listings?.is_featured), ...rows.filter((r) => !r.listings?.is_featured)].slice(0, limit);
+    const order = (r: any) => r.listings?.attributes?.featured_order ?? Number.MAX_SAFE_INTEGER; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const featuredRows = rows.filter((r) => r.listings?.is_featured).sort((a, b) => order(a) - order(b));
+    rows = [...featuredRows, ...rows.filter((r) => !r.listings?.is_featured)].slice(0, limit);
   }
   return rows.map((c) => ({
     kind: c.kind,
