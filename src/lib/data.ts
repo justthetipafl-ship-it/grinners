@@ -117,6 +117,26 @@ export async function getListings(filter: ListingFilter = {}): Promise<Listing[]
   return (data ?? []).map(toListing);
 }
 
+/**
+ * Listings of one type ranked by outbound clicks over the last 30 days.
+ * Returns null when there isn't enough click data yet (or the ranking function hasn't been
+ * added to the database), so the caller can fall back to featured listings and label it honestly.
+ */
+export async function getPopularListings(type: ListingType, limit = 3): Promise<Listing[] | null> {
+  if (!isConfigured) return null;
+  const supabase = publicClient();
+  const ranked = await supabase.rpc("popular_listing_ids", { p_type: type, p_days: 30, p_limit: limit });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ids: string[] = ranked.error ? [] : (ranked.data ?? []).map((r: any) => r.listing_id);
+  if (ids.length < limit) return null;
+  const { data, error } = await supabase.from("listings").select(LISTING_COLUMNS).eq("status", "published").in("id", ids);
+  warn("popular listings", error);
+  if (!data || data.length < limit) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byId = new Map(data.map((row: any) => [row.id, row]));
+  return ids.flatMap((id) => (byId.has(id) ? [toListing(byId.get(id))] : []));
+}
+
 export async function getListing(slug: string): Promise<Listing | undefined> {
   if (!isConfigured) return sample.listings.find((l) => l.slug === slug);
   const { data, error } = await publicClient().from("listings").select(LISTING_COLUMNS).eq("status", "published").eq("slug", slug).maybeSingle();

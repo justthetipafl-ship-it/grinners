@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArticleCard, ContentCard, ListingCard, Monogram, SearchForm, SectionHeading, TipCard, listingHref, DisclosureBadge } from "@/components/Cards";
-import { getArticles, getContent, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
+import { getArticles, getContent, getListing, getPopularListings, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
 import { DIRECTORIES, type DirectoryKey } from "@/lib/types";
 import { NewsletterForm } from "@/components/PublicForms";
 import { X_HANDLE, X_URL } from "@/lib/site";
@@ -9,7 +9,7 @@ import { X_HANDLE, X_URL } from "@/lib/site";
 export const revalidate = 3600;
 
 export default async function Home() {
-  const [featured, tools, tips, articles, spotlight, sports, all, content] = await Promise.all([
+  const [featured, tools, tips, articles, spotlight, sports, all, content, popularTools] = await Promise.all([
     getListings({ featured: true }),
     getListings({ type: "tool" }),
     getTips(),
@@ -18,6 +18,7 @@ export default async function Home() {
     getSports(),
     getListings(),
     getContent({ limit: 6 }),
+    getPopularListings("tool", 3),
   ]);
   const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
   const bySlug = new Map(all.map((l) => [l.slug, l]));
@@ -104,9 +105,10 @@ export default async function Home() {
 
         {tools.length > 0 && (
         <section>
-          <SectionHeading title="Popular tools" href="/tools" />
+          {/* "Popular" only when ranked by real clicks; otherwise the heading says what it is. */}
+            <SectionHeading title={popularTools ? "Popular tools" : "Featured tools"} href="/tools" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.slice(0, 3).map((l) => (
+            {(popularTools ?? tools.slice(0, 3)).map((l) => (
               <ListingCard key={l.slug} listing={l} />
             ))}
           </div>
