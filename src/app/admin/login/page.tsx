@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { login } from "../actions";
-import { isConfigured } from "@/lib/supabase";
+import { isConfigured, urlLooksWrong } from "@/lib/supabase";
 
 export const metadata: Metadata = { title: "Admin sign in", robots: { index: false } };
 
@@ -13,6 +13,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <h1 className="display text-3xl uppercase">Admin sign in</h1>
       {!isConfigured ? (
         <p className="mt-4 rounded-card border border-line bg-surface p-4 text-sm text-muted">
+          {urlLooksWrong && (
+            <strong className="mb-2 block text-fg">
+              NEXT_PUBLIC_SUPABASE_URL is set but isn&apos;t a web address. It should look like https://abcdefgh.supabase.co with nothing after it.
+            </strong>
+          )}
           The database isn&apos;t connected yet. Add <code className="text-fg">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
           <code className="text-fg">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in Vercel, then redeploy. The README has the steps.
         </p>

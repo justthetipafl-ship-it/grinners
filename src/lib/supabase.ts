@@ -3,11 +3,17 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-/** False until the two Supabase settings are added in Vercel. The site then runs on sample content. */
-export const isConfigured = Boolean(url && key);
+/** True when the URL setting is present but isn't a web address, e.g. the key was pasted into it. */
+export const urlLooksWrong = Boolean(url && !/^https:\/\/[^\s/]+\.[^\s/]+\/?$/.test(url));
+
+/**
+ * False until the two Supabase settings are added in Vercel, or if the URL is malformed.
+ * The site then runs on sample content instead of failing to build.
+ */
+export const isConfigured = Boolean(url && key && !urlLooksWrong);
 
 /** Read-only client for public pages. Carries no login, so it only ever sees published rows. */
 export function publicClient() {
