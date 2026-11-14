@@ -1,26 +1,59 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Grinners design tokens. Change a value here and it changes everywhere. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: #0e1012;
+  --color-surface: #16191d;
+  --color-raised: #1e2227;
+  --color-line: #2a2f36;
+  --color-fg: #f2f4f5;
+  --color-muted: #9aa3ad;
+  --color-grin: #22d36b;
+  --color-spotlight: #7c5cff;
+  --color-loss: #e5484d;
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: "Archivo Variable", var(--font-geist-sans), sans-serif;
+
+  --radius-card: 16px;
+  --radius-control: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* Headline style: heavy, slightly expanded Archivo. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* The one permitted glow: soft green-to-purple light behind hero and spotlight. */
+.glow {
+  background:
+    radial-gradient(60% 80% at 15% 0%, rgb(34 211 107 / 0.14), transparent 70%),
+    radial-gradient(50% 70% at 90% 10%, rgb(124 92 255 / 0.16), transparent 70%);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-grin);
+  outline-offset: 2px;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

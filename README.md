@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Grinners
 
-## Getting Started
+Winners are Grinners. A discovery directory for sports betting and fantasy tipsters, tools, podcasts, YouTube channels and creators.
 
-First, run the development server:
+## Where things stand
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Built (phases 1 to 3, public site on sample content)**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Site shell: header, footer, 18+ gate, responsible-gambling strip
+- Homepage
+- Five directories with sport and price filters: `/tipsters`, `/tools`, `/podcasts`, `/youtube`, `/creators`
+- Listing profile pages, with affiliate and sponsored labels
+- Free tips feed, articles index, search
+- Database schema, ready to paste into Supabase: `supabase/migrations/0001_init.sql`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Not built yet**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Supabase connection (the site currently reads `src/data/sample.ts`)
+- Admin dashboard
+- `/go/[slug]` click tracking
+- Individual article pages, spotlights archive, suggest-a-listing form, newsletter sign-up
+- Terms, privacy and editorial policy pages
 
-## Learn More
+All names and results in `src/data/sample.ts` are invented.
 
-To learn more about Next.js, take a look at the following resources:
+## Putting it live with Vercel (no terminal needed)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Go to vercel.com and sign in with GitHub.
+2. Choose **Add New > Project** and import this repository.
+3. Leave every setting as detected and press **Deploy**.
+4. Each later commit to `main` redeploys automatically.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Optional: under **Settings > Environment Variables** add `NEXT_PUBLIC_SITE_URL` with the live address, for example `https://grinners.com.au`.
 
-## Deploy on Vercel
+## Where to change things
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| To change | Edit |
+| --- | --- |
+| Colours, fonts, corner radius | `src/app/globals.css` |
+| Sample listings, tips, articles | `src/data/sample.ts` |
+| Navigation | `src/components/Header.tsx` |
+| Footer and responsible-gambling wording | `src/components/Footer.tsx` |
+| Logo mark | `src/components/Logo.tsx` and `src/app/icon.svg` |

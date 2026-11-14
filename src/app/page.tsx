@@ -1,69 +1,112 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArticleCard, ListingCard, Monogram, SearchForm, SectionHeading, TipCard, listingHref, DisclosureBadge } from "@/components/Cards";
+import { getArticles, getListing, getListings, getSpotlight, getSports, getTips } from "@/lib/data";
+import { DIRECTORIES, type DirectoryKey } from "@/lib/types";
 
-export default function Home() {
+export default async function Home() {
+  const [featured, tools, tips, articles, spotlight, sports, all] = await Promise.all([
+    getListings({ featured: true }),
+    getListings({ type: "tool" }),
+    getTips(),
+    getArticles(),
+    getSpotlight(),
+    getSports(),
+    getListings(),
+  ]);
+  const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
+  const bySlug = new Map(all.map((l) => [l.slug, l]));
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <>
+      <section className="glow border-b border-line">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+          <p className="mb-4 text-sm font-medium text-grin">Tipsters · Tools · Podcasts · YouTube · Creators</p>
+          <h1 className="display max-w-3xl text-5xl uppercase sm:text-7xl">
+            Winners are <span className="text-grin">Grinners.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-5 max-w-xl text-lg text-muted">
+            The home of sports betting and fantasy content. Find the people, tools and shows worth following across Australian and US sport.
           </p>
+          <div className="mt-8">
+            <SearchForm large />
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {sports.map((s) => (
+              <Link key={s.slug} href={`/search?q=${s.slug}`} className="rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm text-muted hover:text-fg">
+                {s.name}
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-12">
+        <section aria-label="Browse by category" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {(Object.keys(DIRECTORIES) as DirectoryKey[]).map((key) => (
+            <Link key={key} href={`/${key}`} className="rounded-card border border-line bg-surface p-4 transition-colors hover:bg-raised">
+              <p className="display text-lg">{DIRECTORIES[key].title}</p>
+              <p className="mt-1 font-mono text-xs text-muted">
+                {all.filter((l) => l.types.includes(DIRECTORIES[key].type)).length} listed
+              </p>
+            </Link>
+          ))}
+        </section>
+
+        {spotlight && spotlightListing && (
+          <section aria-label="Spotlight" className="glow overflow-hidden rounded-card border border-spotlight/40 bg-surface">
+            <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:p-8">
+              <Monogram listing={spotlightListing} size="lg" />
+              <div className="flex-1">
+                <p className="flex items-center gap-2 text-sm font-semibold text-spotlight">
+                  {spotlight.kind}
+                  {spotlight.isSponsored && <DisclosureBadge kind="Sponsored" />}
+                </p>
+                <h2 className="display mt-1 text-3xl">{spotlight.headline}</h2>
+                <p className="mt-2 max-w-2xl text-muted">{spotlight.body}</p>
+              </div>
+              <Link href={listingHref(spotlightListing)} className="flex h-11 shrink-0 items-center justify-center rounded-control border border-line bg-raised px-5 font-semibold hover:border-muted/60">
+                View profile
+              </Link>
+            </div>
+          </section>
+        )}
+
+        <section>
+          <SectionHeading title="Featured" href="/creators" linkLabel="All creators" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((l) => (
+              <ListingCard key={l.slug} listing={l} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading title="Latest free tips" href="/tips" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {tips.slice(0, 3).map((t) => (
+              <TipCard key={t.id} tip={t} author={bySlug.get(t.listingSlug)} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading title="Popular tools" href="/tools" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {tools.slice(0, 3).map((l) => (
+              <ListingCard key={l.slug} listing={l} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading title="Latest articles" href="/articles" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {articles.map((a) => (
+              <ArticleCard key={a.slug} article={a} />
+            ))}
+          </div>
+        </section>
+      </div>
+    </>
   );
 }
