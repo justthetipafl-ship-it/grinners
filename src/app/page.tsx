@@ -8,8 +8,11 @@ import { X_HANDLE, X_URL } from "@/lib/site";
 // Rebuilt at least hourly so scheduled spotlights and new tips appear without a manual save.
 export const revalidate = 3600;
 
+/** How many featured listings the homepage shows. */
+const FEATURED_LIMIT = 8;
+
 export default async function Home() {
-  const [featured, tools, tips, articles, spotlight, sports, all, content, popularTools] = await Promise.all([
+  const [featuredAll, tools, tips, articles, spotlight, sports, all, episodes, videos, popularTools] = await Promise.all([
     getListings({ featured: true }),
     getListings({ type: "tool" }),
     getTips(),
@@ -17,9 +20,12 @@ export default async function Home() {
     getSpotlight(),
     getSports(),
     getListings(),
-    getContent({ limit: 6 }),
+    getContent({ kind: "episode", limit: 3, onePerListing: true }),
+    getContent({ kind: "video", limit: 3, onePerListing: true }),
     getPopularListings("tool", 3),
   ]);
+  // Two rows at most on desktop. The most recently updated featured listings win a place.
+  const featured = featuredAll.slice(0, FEATURED_LIMIT);
   const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
   const bySlug = new Map(all.map((l) => [l.slug, l]));
 
@@ -126,11 +132,22 @@ export default async function Home() {
         </section>
         )}
 
-        {content.length > 0 && (
+        {episodes.length > 0 && (
           <section>
-            <SectionHeading title="Latest videos and episodes" />
+            <SectionHeading title="Latest podcast episodes" href="/podcasts" linkLabel="All podcasts" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {content.map((item) => (
+              {episodes.map((item) => (
+                <ContentCard key={item.url} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {videos.length > 0 && (
+          <section>
+            <SectionHeading title="Latest videos" href="/youtube" linkLabel="All channels" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {videos.map((item) => (
                 <ContentCard key={item.url} item={item} />
               ))}
             </div>

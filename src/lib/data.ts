@@ -126,7 +126,9 @@ export async function getListings(filter: ListingFilter = {}): Promise<Listing[]
     const slugLike = safe.replace(/\s+/g, "-");
     query = query.or(`name.ilike.%${safe}%,tagline.ilike.%${safe}%,bio.ilike.%${safe}%,category.ilike.%${safe}%,attributes->>categories.ilike.%${safe}%,sports.cs.{${slugLike}}`);
   }
-  const { data, error } = await query.order("is_featured", { ascending: false }).order("name");
+  const { data, error } = filter.featured
+    ? await query.order("updated_at", { ascending: false })
+    : await query.order("is_featured", { ascending: false }).order("name");
   warn("listings", error);
   const listings = (data ?? []).map(toListing);
   return filter.category ? listings.filter((l) => (l.categories ?? []).some((c) => categorySlug(c) === filter.category)) : listings;
@@ -278,14 +280,30 @@ export async function getTip(id: string): Promise<Tip | undefined> {
   return data ? toTip(data) : undefined;
 }
 
-export async function getContent(filter: { listingSlug?: string; limit?: number } = {}): Promise<ContentItem[]> {
+/**
+ * Latest videos and episodes pulled from listings' feeds.
+ * With `onePerListing`, each show or channel appears once (its newest item), featured listings first,
+ * so one busy channel can't fill a whole row.
+ */
+export async function getContent(
+  filter: { listingSlug?: string; kind?: "episode" | "video"; limit?: number; onePerListing?: boolean } = {},
+): Promise<ContentItem[]> {
   if (!isConfigured) return [];
-  let query = publicClient().from("content_items").select("kind, title, url, thumbnail_url, published_at, listings!inner(name, slug)");
+  const limit = filter.limit ?? 6;
+  let query = publicClient().from("content_items").select("kind, title, url, thumbnail_url, published_at, listings!inner(name, slug, is_featured)");
   if (filter.listingSlug) query = query.eq("listings.slug", filter.listingSlug);
-  const { data, error } = await query.order("published_at", { ascending: false }).limit(filter.limit ?? 6);
+  if (filter.kind) query = query.eq("kind", filter.kind);
+  const { data, error } = await query.order("published_at", { ascending: false }).limit(filter.onePerListing ? 120 : limit);
   warn("content", error);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data ?? []).map((c: any) => ({
+  let rows = (data ?? []) as any[];
+  if (filter.onePerListing) {
+    const seen = new Set<string>();
+    rows = rows.filter((row) => !seen.has(row.listings?.slug) && seen.add(row.listings?.slug));
+    // Featured listings first; within each group the newest stays first.
+    rows = [...rows.filter((r) => r.listings?.is_featured), ...rows.filter((r) => !r.listings?.is_featured)].slice(0, limit);
+  }
+  return rows.map((c) => ({
     kind: c.kind,
     title: c.title,
     url: c.url,
