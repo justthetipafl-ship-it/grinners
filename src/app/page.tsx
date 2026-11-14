@@ -72,6 +72,9 @@ export default async function Home() {
               <Link href={listingHref(spotlightListing)} className="flex h-11 shrink-0 items-center justify-center rounded-control border border-line bg-raised px-5 font-semibold hover:border-muted/60">
                 View profile
               </Link>
+              <Link href="/spotlight" className="shrink-0 text-sm text-muted hover:text-fg">
+                Past spotlights →
+              </Link>
             </div>
           </section>
         )}

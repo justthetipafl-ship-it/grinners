@@ -385,3 +385,40 @@ export async function refreshFeedsNow() {
       : `Updated ${summary.updated} of ${summary.checked} feeds.` + (summary.failed.length ? ` Problems: ${summary.failed.map((f) => `${f.name}: ${f.reason}`).join(" | ")}` : "");
   redirect(`/admin?feeds=${encodeURIComponent(message)}`);
 }
+
+/* ---------------------------- Taxonomy ---------------------------- */
+
+const TAXONOMY_TABLES = ["sports", "markets", "categories"] as const;
+
+export async function addTaxonomy(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+  const table = text(form, "table") as (typeof TAXONOMY_TABLES)[number];
+  const name = text(form, "name");
+  if (!TAXONOMY_TABLES.includes(table) || !name) redirect("/admin/taxonomy?error=" + encodeURIComponent("Type a name first."));
+
+  const row: Record<string, unknown> = { name, slug: slugify(name) };
+  if (table === "sports") {
+    const last = await supabase.from("sports").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+    row.sort_order = (last.data?.sort_order ?? 0) + 1;
+  }
+  if (table === "categories") row.kind = text(form, "kind") === "article" ? "article" : "tool";
+
+  const { error } = await supabase.from(table).insert(row);
+  revalidatePath("/", "layout");
+  redirect(error ? `/admin/taxonomy?error=${encodeURIComponent(error.code === "23505" ? `"${name}" already exists.` : error.message)}` : "/admin/taxonomy?saved=1");
+}
+
+export async function deleteTaxonomy(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+  const table = text(form, "table") as (typeof TAXONOMY_TABLES)[number];
+  if (!TAXONOMY_TABLES.includes(table)) redirect("/admin/taxonomy");
+  const { error } = await supabase.from(table).delete().eq("id", text(form, "id"));
+  revalidatePath("/", "layout");
+  redirect(
+    error
+      ? `/admin/taxonomy?error=${encodeURIComponent(error.code === "23503" ? "That one is in use by tips or articles, so it can't be deleted." : error.message)}`
+      : "/admin/taxonomy?saved=1",
+  );
+}

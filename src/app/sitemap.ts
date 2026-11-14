@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...Object.keys(DIRECTORIES).map((d) => `/${d}`),
     "/tips",
     "/articles",
+    "/spotlight",
     "/about",
     "/how-we-make-money",
     "/editorial-policy",

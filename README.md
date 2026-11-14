@@ -6,20 +6,19 @@ Winners are Grinners. A discovery directory for sports betting and fantasy tipst
 
 **Built**
 
-- Public site: homepage, five directories with filters, profile pages with preview images, sport hubs (`/sports/afl`), free tips feed, articles, search
+- Public site: homepage, five directories with filters, profile pages with preview images, sport hubs (`/sports/afl`), free tips feed with a shareable page per tip, articles, spotlights archive (`/spotlight`), search
 - Suggest-a-listing form (`/submit`) and newsletter sign-up
 - Trust pages: about, how we make money, editorial policy, responsible gambling, terms, privacy (all draft wording for legal review)
 - Site shell: header, footer, 18+ gate, responsible-gambling strip
 - Search-engine and sharing groundwork: sitemap, robots file, a generated share image for every listing and article, Share to X buttons
-- Admin dashboard at `/admin`: overview with click, sign-up and suggestion counts; listings; tips with grading; articles; spotlight scheduling; suggestion review
+- Admin dashboard at `/admin`: overview with click, sign-up and suggestion counts; listings; tips with grading; articles; spotlight scheduling; suggestion review; sports, markets and categories
 - Latest videos and episodes: set a feed on a YouTube or podcast listing, then press **Refresh feeds** on the admin overview
 - Click tracking: a listing's main button goes through `/go/<slug>`, which counts the click and forwards the visitor
 
 **Not built yet**
 
 - Sending the newsletter (sign-ups are collected; sending needs an email service)
-- Admin screen for sports, markets and categories (editable in Supabase's Table Editor meanwhile)
-- Past-spotlights archive, creator logins
+- Creator logins
 
 Until the database is connected the site shows the invented sample content in `src/data/sample.ts`.
 
@@ -33,6 +32,12 @@ Until the database is connected the site shows the invented sample content in `s
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: the **publishable** key (older projects call it the `anon` key). Never the secret or `service_role` key.
 5. **Redeploy.** In Vercel open **Deployments**, press the three dots on the latest one, choose **Redeploy**.
 6. **Make yourself an admin.** Go to `/admin` on the live site and sign in. The page shows one line of SQL with your user ID. Paste it into Supabase's SQL Editor, run it, reload.
+
+### Database updates after the first setup
+
+Run these in Supabase's SQL Editor, once each, in order:
+
+- `supabase/migrations/0002_spotlight_archive.sql`: lets the `/spotlight` page show past spotlights. Until it's run, that page shows only the current one.
 
 ### Optional: refresh feeds automatically every day
 

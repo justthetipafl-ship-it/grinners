@@ -72,6 +72,7 @@ export type Spotlight = {
   headline: string;
   body: string;
   isSponsored?: boolean;
+  startsOn?: string;
 };
 
 export const DIRECTORIES = {

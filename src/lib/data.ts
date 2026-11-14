@@ -187,11 +187,39 @@ export async function getArticle(slug: string): Promise<Article | undefined> {
   };
 }
 
-export async function getSpotlight(): Promise<Spotlight | undefined> {
-  if (!isConfigured) return sample.spotlight;
+/** Today's date in Brisbane, as YYYY-MM-DD. */
+const brisbaneToday = () => new Date(Date.now() + 10 * 3_600_000).toISOString().slice(0, 10);
+
+/** Spotlights that have started, newest first. Includes finished ones for the archive page. */
+export async function getSpotlights(): Promise<Spotlight[]> {
+  if (!isConfigured) return [sample.spotlight];
   const { data, error } = await publicClient()
     .from("spotlights")
-    .select("kind, headline, body, is_sponsored, listings!inner(slug)")
+    .select("kind, headline, body, is_sponsored, starts_on, listings!inner(slug)")
+    .lte("starts_on", brisbaneToday())
+    .order("starts_on", { ascending: false })
+    .limit(60);
+  warn("spotlights", error);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((row: any) => ({
+    kind: row.kind,
+    listingSlug: row.listings.slug,
+    headline: row.headline,
+    body: row.body,
+    isSponsored: row.is_sponsored,
+    startsOn: row.starts_on,
+  }));
+}
+
+/** The spotlight running today, if any. */
+export async function getSpotlight(): Promise<Spotlight | undefined> {
+  if (!isConfigured) return sample.spotlight;
+  const today = brisbaneToday();
+  const { data, error } = await publicClient()
+    .from("spotlights")
+    .select("kind, headline, body, is_sponsored, starts_on, listings!inner(slug)")
+    .lte("starts_on", today)
+    .gte("ends_on", today)
     .order("starts_on", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -199,7 +227,20 @@ export async function getSpotlight(): Promise<Spotlight | undefined> {
   if (!data) return undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = data as any;
-  return { kind: row.kind, listingSlug: row.listings.slug, headline: row.headline, body: row.body, isSponsored: row.is_sponsored };
+  return { kind: row.kind, listingSlug: row.listings.slug, headline: row.headline, body: row.body, isSponsored: row.is_sponsored, startsOn: row.starts_on };
+}
+
+export async function getTip(id: string): Promise<Tip | undefined> {
+  if (!isConfigured) return sample.tips.find((t) => t.id === id);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return undefined;
+  const { data, error } = await publicClient()
+    .from("tips")
+    .select("*, listings!inner(slug), sports!inner(slug, name), competitions(name), markets(name)")
+    .eq("status", "published")
+    .eq("id", id)
+    .maybeSingle();
+  warn("tip", error);
+  return data ? toTip(data) : undefined;
 }
 
 export async function getContent(filter: { listingSlug?: string; limit?: number } = {}): Promise<ContentItem[]> {

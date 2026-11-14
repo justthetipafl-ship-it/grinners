@@ -151,7 +151,7 @@ export function ResultPill({ result }: { result: Tip["result"] }) {
   );
 }
 
-export function TipCard({ tip, author }: { tip: Tip; author?: Listing }) {
+export function TipCard({ tip, author, linked = true }: { tip: Tip; author?: Listing; linked?: boolean }) {
   return (
     <article className="flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-4">
       <div className="flex items-center justify-between gap-2 text-xs text-muted">
@@ -163,7 +163,15 @@ export function TipCard({ tip, author }: { tip: Tip; author?: Listing }) {
       <div>
         <p className="text-sm text-muted">{tip.event}</p>
         <div className="mt-1 flex items-start justify-between gap-3">
-          <h3 className="font-semibold">{tip.selection}</h3>
+          <h3 className="font-semibold">
+            {linked ? (
+              <Link href={`/tips/${tip.id}`} className="hover:underline">
+                {tip.selection}
+              </Link>
+            ) : (
+              tip.selection
+            )}
+          </h3>
           <span className="rounded-control border border-line bg-raised px-2.5 py-1 font-mono text-sm tabular-nums">
             {tip.odds.toFixed(2)}
           </span>
