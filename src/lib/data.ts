@@ -161,6 +161,31 @@ export async function getArticles(): Promise<Article[]> {
   }));
 }
 
+export async function getArticle(slug: string): Promise<Article | undefined> {
+  if (!isConfigured) return sample.articles.find((a) => a.slug === slug);
+  const { data, error } = await publicClient()
+    .from("articles")
+    .select("slug, title, excerpt, body, author_name, published_at, is_sponsored, sponsor_name, categories(name)")
+    .eq("status", "published")
+    .eq("slug", slug)
+    .maybeSingle();
+  warn("article", error);
+  if (!data) return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const a = data as any;
+  return {
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    body: a.body || undefined,
+    category: a.categories?.name ?? "Article",
+    author: a.author_name,
+    publishedAt: a.published_at,
+    isSponsored: a.is_sponsored,
+    sponsorName: a.sponsor_name ?? undefined,
+  };
+}
+
 export async function getSpotlight(): Promise<Spotlight | undefined> {
   if (!isConfigured) return sample.spotlight;
   const { data, error } = await publicClient()

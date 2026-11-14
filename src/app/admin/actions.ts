@@ -159,3 +159,127 @@ export async function saveListing(form: FormData) {
   if (problems.length) redirect(`${editUrl}?error=${encodeURIComponent(`Listing saved, but: ${problems.join(" ")}`)}`);
   redirect(`${editUrl}?saved=1`);
 }
+
+/* ------------------------------ Tips ------------------------------ */
+
+/** The form's date and time are entered in Brisbane time (UTC+10, no daylight saving). */
+const brisbaneToIso = (local: string) => new Date(`${local}:00+10:00`).toISOString();
+
+export async function saveTip(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  const back = `/admin/tips/${id || "new"}`;
+  const fail = (message: string): never => redirect(`${back}?error=${encodeURIComponent(message)}`);
+
+  const listingId = text(form, "listing_id");
+  const sportId = text(form, "sport_id");
+  const eventName = text(form, "event_name");
+  const start = text(form, "event_start");
+  const selection = text(form, "selection");
+  const odds = Number(text(form, "odds"));
+  const status = text(form, "status") || "draft";
+
+  if (!listingId) fail("Choose who the tip is from.");
+  if (!sportId) fail("Choose a sport.");
+  if (!eventName || !selection) fail("Fill in the event and the selection.");
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(start)) fail("Enter the event's start date and time.");
+  if (!(odds > 1)) fail("Odds must be decimal and greater than 1.00, for example 1.90.");
+
+  // Competitions are created the first time their name is used.
+  let competitionId: string | null = null;
+  const competition = text(form, "competition");
+  if (competition) {
+    const found = await supabase.from("competitions").select("id").eq("sport_id", sportId).ilike("name", competition).limit(1).maybeSingle();
+    if (found.data) {
+      competitionId = found.data.id;
+    } else {
+      const created = await supabase
+        .from("competitions")
+        .insert({ sport_id: sportId, name: competition, slug: `${slugify(competition)}-${sportId.slice(0, 8)}` })
+        .select("id")
+        .single();
+      if (created.error) fail(`Couldn't save the competition: ${created.error.message}`);
+      competitionId = created.data!.id;
+    }
+  }
+
+  const row: Record<string, unknown> = {
+    listing_id: listingId,
+    sport_id: sportId,
+    competition_id: competitionId,
+    event_name: eventName,
+    event_start: brisbaneToIso(start),
+    market_label: text(form, "market") || null,
+    selection,
+    odds,
+    bookmaker: text(form, "bookmaker") || null,
+    analysis: text(form, "analysis"),
+    status,
+  };
+  if (status === "published" && !text(form, "published_at")) row.published_at = new Date().toISOString();
+
+  const saved = id ? await supabase.from("tips").update(row).eq("id", id) : await supabase.from("tips").insert(row);
+  if (saved.error) fail(saved.error.message);
+
+  revalidatePath("/", "layout");
+  redirect("/admin/tips?saved=1");
+}
+
+export async function gradeTip(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+  const result = text(form, "result");
+  if (!["won", "lost", "void", "pending"].includes(result)) redirect("/admin/tips");
+  const { error } = await supabase
+    .from("tips")
+    .update({ result, settled_at: result === "pending" ? null : new Date().toISOString() })
+    .eq("id", text(form, "id"));
+  revalidatePath("/", "layout");
+  redirect(error ? `/admin/tips?error=${encodeURIComponent(error.message)}` : "/admin/tips");
+}
+
+/* ---------------------------- Articles ---------------------------- */
+
+export async function saveArticle(form: FormData) {
+  const { supabase, isAdmin } = await requireAdmin();
+  if (!isAdmin) redirect("/admin");
+
+  const id = text(form, "id");
+  const back = `/admin/articles/${id || "new"}`;
+  const fail = (message: string): never => redirect(`${back}?error=${encodeURIComponent(message)}`);
+
+  const title = text(form, "title");
+  const slug = slugify(text(form, "slug") || title);
+  const status = text(form, "status") || "draft";
+  const isSponsored = form.get("is_sponsored") === "on";
+  const sponsorName = text(form, "sponsor_name");
+
+  if (!title || !slug) fail("Give the article a title.");
+  if (isSponsored && !sponsorName) fail("A sponsored article needs the sponsor's name.");
+
+  const row: Record<string, unknown> = {
+    title,
+    slug,
+    excerpt: text(form, "excerpt"),
+    body: String(form.get("body") ?? "").replace(/\r\n/g, "\n").trim(),
+    category_id: text(form, "category_id") || null,
+    author_name: text(form, "author_name") || "Grinners",
+    is_sponsored: isSponsored,
+    sponsor_name: isSponsored ? sponsorName : null,
+    status,
+    updated_at: new Date().toISOString(),
+  };
+  if (status === "published" && !text(form, "published_at")) row.published_at = new Date().toISOString();
+
+  const saved = id
+    ? await supabase.from("articles").update(row).eq("id", id).select("id").single()
+    : await supabase.from("articles").insert(row).select("id").single();
+  if (saved.error || !saved.data) {
+    fail(saved.error?.code === "23505" ? "Another article already uses that web address (slug)." : `Couldn't save: ${saved.error?.message ?? "unknown error"}`);
+  }
+
+  revalidatePath("/", "layout");
+  redirect(`/admin/articles/${saved.data!.id}?saved=1`);
+}

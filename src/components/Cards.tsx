@@ -199,7 +199,11 @@ export function ArticleCard({ article }: { article: Article }) {
         <span className="text-spotlight">{article.category}</span>
         {article.isSponsored && <DisclosureBadge kind="Sponsored" />}
       </div>
-      <h3 className="text-lg font-semibold leading-snug">{article.title}</h3>
+      <h3 className="text-lg font-semibold leading-snug">
+        <Link href={`/articles/${article.slug}`} className="hover:underline">
+          {article.title}
+        </Link>
+      </h3>
       <p className="text-sm text-muted">{article.excerpt}</p>
       <p className="mt-auto pt-2 text-xs text-muted">
         {article.author} · {day.format(new Date(article.publishedAt))}

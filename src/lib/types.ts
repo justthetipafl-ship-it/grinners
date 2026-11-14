@@ -52,6 +52,8 @@ export type Article = {
   author: string;
   publishedAt: string;
   isSponsored?: boolean;
+  sponsorName?: string;
+  body?: string;
 };
 
 export type Spotlight = {
