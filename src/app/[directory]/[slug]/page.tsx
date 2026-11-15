@@ -50,8 +50,16 @@ export default async function ListingPage({ params }: Props) {
               <Chip key={s}>{s.toUpperCase()}</Chip>
             ))}
             {listing.markets?.map((m) => <Chip key={m}>{m}</Chip>)}
-            {listing.categories?.map((c) => <Chip key={c}>{c}</Chip>)}
           </div>
+          {listing.categories && listing.categories.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {listing.categories.map((c) => (
+                <span key={c} className="rounded-full border border-spotlight/40 px-2.5 py-0.5 text-xs text-spotlight">
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -59,7 +67,7 @@ export default async function ListingPage({ params }: Props) {
         <div className="flex flex-col gap-8">
           {listing.coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.coverUrl} alt={`Preview of ${listing.name}`} className="aspect-video w-full rounded-card border border-line bg-raised object-cover" />
+            <img src={listing.coverUrl} alt={`Preview of ${listing.name}`} className="h-auto max-h-[560px] w-full rounded-card border border-line bg-raised object-contain" />
           )}
           <section>
             <h2 className="mb-2 font-semibold">About</h2>
@@ -95,11 +103,17 @@ export default async function ListingPage({ params }: Props) {
             <section>
               <h2 className="mb-1 font-semibold">Tips on Grinners</h2>
               <p className="mb-3 text-sm text-muted">
-                Record from tips posted here before the event started:{" "}
-                <span className="font-mono text-fg">
-                  {record.won}–{record.lost}
-                </span>{" "}
-                from {record.graded} graded. A small sample tells you very little.
+                {record.graded === 0 ? (
+                  "No graded tips yet. Tips posted here lock when the event starts and are graded afterwards."
+                ) : (
+                  <>
+                    Record from tips posted here before the event started:{" "}
+                    <span className="font-mono text-fg">
+                      {record.won}–{record.lost}
+                    </span>{" "}
+                    from {record.graded} graded.{record.graded < 30 ? " A small sample tells you very little." : ""}
+                  </>
+                )}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {tips.map((t) => (

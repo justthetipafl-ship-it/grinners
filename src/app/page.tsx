@@ -26,6 +26,11 @@ export default async function Home() {
   ]);
   // Two rows at most on desktop. The most recently updated featured listings win a place.
   const featured = featuredAll.slice(0, FEATURED_LIMIT);
+  // Tools row: the most-clicked when there's enough data. Otherwise tools the Featured row
+  // isn't already showing, so the same cards don't appear twice in a row.
+  const shownAbove = new Set(featured.map((l) => l.slug));
+  const freshTools = tools.filter((l) => !shownAbove.has(l.slug));
+  const toolsRow = popularTools ?? (freshTools.length >= 3 ? freshTools : tools).slice(0, 3);
   const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
   const bySlug = new Map(all.map((l) => [l.slug, l]));
 
@@ -89,7 +94,7 @@ export default async function Home() {
 
         {featured.length > 0 && (
         <section>
-          <SectionHeading title="Featured" href="/creators" linkLabel="All creators" />
+          <SectionHeading title="Featured" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((l) => (
               <ListingCard key={l.slug} listing={l} />
@@ -109,12 +114,12 @@ export default async function Home() {
         </section>
         )}
 
-        {tools.length > 0 && (
+        {toolsRow.length > 0 && (
         <section>
           {/* "Popular" only when ranked by real clicks; otherwise the heading says what it is. */}
-            <SectionHeading title={popularTools ? "Popular tools" : "Featured tools"} href="/tools" />
+            <SectionHeading title={popularTools ? "Popular tools" : "Tools to explore"} href="/tools" linkLabel="All tools" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(popularTools ?? tools.slice(0, 3)).map((l) => (
+            {toolsRow.map((l) => (
               <ListingCard key={l.slug} listing={l} />
             ))}
           </div>

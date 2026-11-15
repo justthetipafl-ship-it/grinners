@@ -301,12 +301,16 @@ export async function getContent(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let rows = (data ?? []) as any[];
   if (filter.onePerListing) {
+    const all = rows;
     const seen = new Set<string>();
     rows = rows.filter((row) => !seen.has(row.listings?.slug) && seen.add(row.listings?.slug));
     // Featured listings first; within each group the newest stays first.
     const order = (r: any) => r.listings?.attributes?.featured_order ?? Number.MAX_SAFE_INTEGER; // eslint-disable-line @typescript-eslint/no-explicit-any
     const featuredRows = rows.filter((r) => r.listings?.is_featured).sort((a, b) => order(a) - order(b));
-    rows = [...featuredRows, ...rows.filter((r) => !r.listings?.is_featured)].slice(0, limit);
+    const onePerShow = [...featuredRows, ...rows.filter((r) => !r.listings?.is_featured)];
+    // With fewer shows than places, top the row up with the next-newest items rather than leave gaps.
+    const chosen = new Set(onePerShow.map((r) => r.url));
+    rows = [...onePerShow, ...all.filter((r) => !chosen.has(r.url))].slice(0, limit);
   }
   return rows.map((c) => ({
     kind: c.kind,

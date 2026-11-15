@@ -74,40 +74,46 @@ export function Monogram({
 export const listingHref = (l: Listing) =>
   `/${directoryForType(l.types[0])}/${l.slug}`;
 
+/**
+ * Preview image that is never cropped. The whole image is shown, and any gap at the sides or
+ * top and bottom is filled with a blurred, darkened copy of the same image.
+ */
+export function CoverImage({ src }: { src: string }) {
+  return (
+    <div className="relative aspect-video w-full overflow-hidden border-b border-line bg-raised">
+      <img src={src} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl" />
+      <img src={src} alt="" loading="lazy" className="relative h-full w-full object-contain" />
+    </div>
+  );
+}
+
 export function ListingCard({ listing }: { listing: Listing }) {
   return (
     <Link
       href={listingHref(listing)}
       className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface transition-colors hover:border-muted/50 hover:bg-raised"
     >
-      {listing.coverUrl && (
-        <img
-          src={listing.coverUrl}
-          alt=""
-          loading="lazy"
-          className="aspect-video w-full border-b border-line bg-raised object-cover"
-        />
-      )}
+      {listing.coverUrl && <CoverImage src={listing.coverUrl} />}
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start gap-3">
           <Monogram listing={listing} />
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-semibold">{listing.name}</h3>
+            <h3 className="line-clamp-2 font-semibold leading-snug">{listing.name}</h3>
             <p className="text-xs text-muted">
               {listing.types.map((t) => TYPE_LABEL[t]).join(" · ")}
             </p>
           </div>
           {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
         </div>
-        <p className="text-sm text-muted">{listing.tagline}</p>
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
-          {listing.sports.slice(0, 3).map((s) => (
+        <p className="line-clamp-3 text-sm text-muted">{listing.tagline}</p>
+        <div className="mt-auto flex items-center gap-1.5 overflow-hidden pt-1 whitespace-nowrap">
+          {listing.sports.slice(0, listing.sports.length > 3 ? 2 : 3).map((s) => (
             <Chip key={s}>{s.toUpperCase()}</Chip>
           ))}
           {listing.sports.length > 3 && (
-            <Chip>+{listing.sports.length - 3}</Chip>
+            <Chip>+{listing.sports.length - 2}</Chip>
           )}
-          <span className="ml-auto text-xs text-muted">
+          <span className="ml-auto shrink-0 pl-2 text-xs text-muted">
             {PRICING_LABEL[listing.pricing]}
           </span>
         </div>
@@ -284,7 +290,7 @@ export function ContentCard({ item, showSource = true }: { item: ContentItem; sh
       rel="noopener"
       className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface transition-colors hover:border-muted/50 hover:bg-raised"
     >
-      {item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" loading="lazy" className="aspect-video w-full border-b border-line bg-raised object-cover" />}
+      {item.thumbnailUrl && <CoverImage src={item.thumbnailUrl} />}
       <div className="flex flex-1 flex-col gap-2 p-4">
         <p className="text-xs text-muted">
           {item.kind === "video" ? "Video" : "Episode"} · {shortDay.format(new Date(item.publishedAt))}
