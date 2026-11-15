@@ -27,6 +27,26 @@ async function fetchText(address: string) {
   return (await response.text()).slice(0, 3_000_000);
 }
 
+const YOUTUBE_CHANNEL_FEED = /^https:\/\/www\.youtube\.com\/feeds\/videos\.xml\?channel_id=UC([\w-]+)$/;
+
+/**
+ * YouTube's channel feeds go through spells of answering "not found" for every channel.
+ * The channel's uploads playlist feed carries the same videos and is often still up, so try that before giving up.
+ */
+async function fetchFeed(feedUrl: string) {
+  try {
+    return await fetchText(feedUrl);
+  } catch (problem) {
+    const channel = feedUrl.match(YOUTUBE_CHANNEL_FEED);
+    if (!channel) throw problem;
+    try {
+      return await fetchText(`https://www.youtube.com/feeds/videos.xml?playlist_id=UU${channel[1]}`);
+    } catch {
+      throw new Error("YouTube's feed service isn't answering right now. This happens to every channel at once and usually clears within a few hours. Videos already saved stay on the site.");
+    }
+  }
+}
+
 /** Turns whatever was typed into the feed field into a working feed address. */
 export async function resolveFeedUrl(input: string) {
   const { feedUrl, pageUrl } = normaliseFeedInput(input);
@@ -54,7 +74,7 @@ export async function refreshFeeds(supabase: SupabaseClient): Promise<FeedSummar
       const attributes = (listing.attributes ?? {}) as Record<string, any>;
       try {
         const feedUrl = attributes.feed_resolved ?? (await resolveFeedUrl(String(attributes.feed_url)));
-        const feed = parseFeed(await fetchText(feedUrl));
+        const feed = parseFeed(await fetchFeed(feedUrl));
         if (!feed.items.length) throw new Error("The feed has no items we could read.");
         const saved = await supabase.from("content_items").upsert(
           feed.items.map((item) => ({
