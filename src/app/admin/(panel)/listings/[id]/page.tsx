@@ -1,3 +1,4 @@
+import { COUNTRIES } from "@/lib/countries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteListing, saveListing } from "../../../actions";
@@ -154,6 +155,14 @@ export default async function EditListing({ params, searchParams }: Props) {
             ))}
           </div>
         </div>
+        <Field label="Country of origin" hint="Where the creator or company is based. Shown as a flag on the listing.">
+          <select name="country" defaultValue={l.attributes?.country ?? ""} className={input}>
+            <option value="">Not shown</option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.name}</option>
+            ))}
+          </select>
+        </Field>
         <Field label="Betting markets" hint="Separate with commas, e.g. Player props, Line, Totals">
           <input name="markets" defaultValue={(l.markets ?? []).join(", ")} className={input} />
         </Field>

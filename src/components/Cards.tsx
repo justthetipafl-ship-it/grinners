@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- uploaded images come from Supabase storage; plain img avoids per-domain image configuration */
+import { Flag } from "@/components/Flag";
 import Link from "next/link";
 import { GrinTick } from "./Logo";
 import {
@@ -99,7 +100,8 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <Monogram listing={listing} />
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-2 font-semibold leading-snug">{listing.name}</h3>
-            <p className="text-xs text-muted">
+            <p className="flex items-center gap-1.5 text-xs text-muted">
+              <Flag code={listing.country} className="h-3" />
               {listing.types.map((t) => TYPE_LABEL[t]).join(" · ")}
             </p>
           </div>

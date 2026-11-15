@@ -62,6 +62,7 @@ function toListing(row: any): Listing {
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
       .map((l: any) => ({ platform: l.platform, url: l.url })),
     cta: link ? { label: link.label, url: `/go/${link.slug}`, affiliate: link.is_affiliate } : undefined,
+    country: typeof row.attributes?.country === "string" ? row.attributes.country : undefined,
     isFeatured: row.is_featured,
     featuredOrder: typeof row.attributes?.featured_order === "number" ? row.attributes.featured_order : undefined,
     isSponsored: row.is_sponsored,

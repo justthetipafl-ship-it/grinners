@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { refreshFeeds } from "@/lib/feeds";
 import { isConfigured, requireAdmin, serverClient } from "@/lib/supabase";
+import { COUNTRIES } from "@/lib/countries";
 
 // Two images can be sent in one save, and the host caps a request at about 4.5 MB.
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
@@ -106,9 +107,16 @@ export async function saveListing(form: FormData) {
   }
   const categoriesChanged = JSON.stringify(attributes.categories ?? []) !== JSON.stringify(categoryList);
   if (categoriesChanged) attributes.categories = categoryList;
-  if (feedChanged || categoriesChanged) {
+  const countryInput = text(form, "country");
+  const country = COUNTRIES.some((c) => c.code === countryInput) ? countryInput : "";
+  const countryChanged = (attributes.country ?? "") !== country;
+  if (countryChanged) {
+    if (country) attributes.country = country;
+    else delete attributes.country;
+  }
+  if (feedChanged || categoriesChanged || countryChanged) {
     const { error } = await supabase.from("listings").update({ attributes }).eq("id", listingId);
-    if (error) problems.push(`Categories and feed address weren't saved: ${error.message}`);
+    if (error) problems.push(`Country, categories and feed address weren't saved: ${error.message}`);
   }
 
   // Social links: one per line, written as "Platform | https://address".

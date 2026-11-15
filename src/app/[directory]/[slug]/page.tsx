@@ -1,3 +1,5 @@
+import { Flag } from "@/components/Flag";
+import { countryName } from "@/lib/countries";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,6 +47,12 @@ export default async function ListingPage({ params }: Props) {
             {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
           </div>
           <p className="mt-2 text-lg text-muted">{listing.tagline}</p>
+          {countryName(listing.country) && (
+            <p className="mt-2 flex items-center gap-2 text-sm text-muted">
+              <Flag code={listing.country} />
+              {countryName(listing.country)}
+            </p>
+          )}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {listing.sports.map((s) => (
               <Chip key={s}>{s.toUpperCase()}</Chip>

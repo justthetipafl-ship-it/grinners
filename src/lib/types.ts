@@ -19,6 +19,8 @@ export type Listing = {
   markets?: string[];
   /** Tool categories. A listing can sit in several. */
   categories?: string[];
+  /** Two-letter country of origin, shown as a flag. */
+  country?: string;
   pricing: PricingModel;
   pricingNote?: string;
   links: { platform: string; url: string }[];

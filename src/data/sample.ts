@@ -27,6 +27,7 @@ export const listings: Listing[] = [
     sports: ["afl"],
     markets: ["Player props", "Line"],
     pricing: "freemium",
+    country: "AU",
     pricingNote: "Free plays weekly; full card by membership",
     links: [
       { platform: "X", url: sample("x/backpocket") },
@@ -45,6 +46,7 @@ export const listings: Listing[] = [
     sports: ["nrl"],
     markets: ["Try scorer", "Line", "Totals"],
     pricing: "free",
+    country: "US",
     links: [{ platform: "X", url: sample("x/sinbin") }],
   },
   {
@@ -57,6 +59,7 @@ export const listings: Listing[] = [
     sports: ["nba"],
     markets: ["Player props"],
     pricing: "paid",
+    country: "AU",
     pricingNote: "Monthly membership",
     links: [
       { platform: "X", url: sample("x/garbagetime") },
@@ -74,6 +77,7 @@ export const listings: Listing[] = [
     sports: ["nfl"],
     markets: ["Player props", "Totals"],
     pricing: "free",
+    country: "US",
     links: [{ platform: "X", url: sample("x/redzonericky") }],
   },
   {
@@ -86,6 +90,7 @@ export const listings: Listing[] = [
     sports: ["afl", "nrl", "nba"],
     categories: ["Player prop research", "Statistical research"],
     pricing: "freemium",
+    country: "AU",
     pricingNote: "Free tier; Pro unlocks line history",
     links: [{ platform: "Website", url: sample("propline") }],
     cta: { label: "Try Propline", url: sample("propline/signup"), affiliate: true },
@@ -102,6 +107,7 @@ export const listings: Listing[] = [
     sports: ["afl", "nrl", "racing", "nba", "nfl", "mlb"],
     categories: ["Bankroll tracking"],
     pricing: "free",
+    country: "US",
     links: [{ platform: "Website", url: sample("stakebook") }],
     cta: { label: "Visit Stakebook", url: sample("stakebook"), affiliate: false },
     features: ["Fast bet entry", "Results by sport and market", "CSV export"],
