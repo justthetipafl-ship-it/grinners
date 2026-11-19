@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingCard } from "@/components/Cards";
 import { categorySlug, getListings, getSports } from "@/lib/data";
+import { Flag } from "@/components/Flag";
+import { COUNTRIES } from "@/lib/countries";
 import { DIRECTORIES, type DirectoryKey, type PricingModel } from "@/lib/types";
 
 type Props = {
   params: Promise<{ directory: string }>;
-  searchParams: Promise<{ sport?: string; pricing?: string; category?: string }>;
+  searchParams: Promise<{ sport?: string; pricing?: string; category?: string; country?: string; show?: string }>;
 };
 
 export const dynamicParams = false;
@@ -51,8 +53,8 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
   const dir = DIRECTORIES[directory as DirectoryKey];
   if (!dir) notFound();
 
-  const { sport, pricing, category } = await searchParams;
-  const [listings, sports, everything] = await Promise.all([
+  const { sport, pricing, category, country, show } = await searchParams;
+  const [matching, allSports, everything] = await Promise.all([
     getListings({ type: dir.type, sport, pricing: pricing as PricingModel | undefined, category }),
     getSports(),
     getListings({ type: dir.type }),
@@ -60,10 +62,21 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
   // Only categories that at least one listing here uses, so no filter leads to an empty page.
   const categories = [...new Set(everything.flatMap((l) => l.categories ?? []))].sort();
 
-  // Builds a link that keeps the other filter in place.
-  const link = (next: { sport?: string; pricing?: string; category?: string }) => {
+  // The same rule for the rest: a sport, country or badge filter only appears when something here would match it.
+  const sports = allSports.filter((s) => s.slug === sport || everything.some((l) => l.sports.includes(s.slug)));
+  const countries = COUNTRIES.filter((c) => c.code === country || everything.some((l) => l.country === c.code));
+  const anyCertified = show === "certified" || everything.some((l) => l.certified);
+  const anyDeals = show === "deals" || everything.some((l) => l.deal);
+  const listings = matching.filter(
+    (l) => (!country || l.country === country) && (show !== "certified" || l.certified) && (show !== "deals" || l.deal),
+  );
+
+  // Builds a link that keeps the other filters in place.
+  const link = (next: { sport?: string; pricing?: string; category?: string; country?: string; show?: string }) => {
     const query = new URLSearchParams();
-    const merged = { sport, pricing, category, ...next };
+    const merged = { sport, pricing, category, country, show, ...next };
+    if (merged.country) query.set("country", merged.country);
+    if (merged.show) query.set("show", merged.show);
     if (merged.sport) query.set("sport", merged.sport);
     if (merged.pricing) query.set("pricing", merged.pricing);
     if (merged.category) query.set("category", merged.category);
@@ -97,6 +110,35 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
                 {c}
               </FilterChip>
             ))}
+          </div>
+        )}
+        {(countries.length > 1 || anyCertified || anyDeals) && (
+          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by country and badge">
+            {countries.length > 1 && (
+              <>
+                <FilterChip href={link({ country: undefined })} active={!country}>
+                  Anywhere
+                </FilterChip>
+                {countries.map((c) => (
+                  <FilterChip key={c.code} href={link({ country: c.code })} active={country === c.code}>
+                    <span className="flex items-center gap-2">
+                      <Flag code={c.code} className="h-3" />
+                      {c.name}
+                    </span>
+                  </FilterChip>
+                ))}
+              </>
+            )}
+            {anyCertified && (
+              <FilterChip href={link({ show: show === "certified" ? undefined : "certified" })} active={show === "certified"}>
+                Certified Grinners
+              </FilterChip>
+            )}
+            {anyDeals && (
+              <FilterChip href={link({ show: show === "deals" ? undefined : "deals" })} active={show === "deals"}>
+                With a deal
+              </FilterChip>
+            )}
           </div>
         )}
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by price">
