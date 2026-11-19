@@ -77,6 +77,8 @@ function toListing(row: any): Listing {
     isSponsored: row.is_sponsored,
     ownershipDisclosure: row.ownership_disclosure ?? undefined,
     features: row.features?.length ? row.features : undefined,
+    id: row.id,
+    addedAt: row.created_at ?? undefined,
     certified: row.attributes?.certified === true || undefined,
     deal: activeDeal(row.attributes?.deal),
     gallery: Array.isArray(row.attributes?.gallery) && row.attributes.gallery.length ? row.attributes.gallery.map(String) : undefined,
@@ -168,6 +170,35 @@ export async function getPopularListings(type: ListingType, limit = 3): Promise<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const byId = new Map(data.map((row: any) => [row.id, row]));
   return ids.flatMap((id) => (byId.has(id) ? [toListing(byId.get(id))] : []));
+}
+
+/** Ids of the most-clicked listings of one type over 30 days, best first. Empty when there isn't enough click data. */
+export async function getPopularIds(type: ListingType): Promise<string[]> {
+  if (!isConfigured) return [];
+  const ranked = await publicClient().rpc("popular_listing_ids", { p_type: type, p_days: 30, p_limit: 20 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ranked.error ? [] : (ranked.data ?? []).map((r: any) => r.listing_id);
+}
+
+/**
+ * Up to three listings closest to this one: same kind first, then shared sports and categories.
+ * Nothing is returned unless there is a real overlap, so the row never shows unrelated listings.
+ */
+export async function getSimilarListings(listing: Listing, limit = 3): Promise<Listing[]> {
+  const score = (other: Listing) => {
+    const sharedSports = other.sports.filter((s) => listing.sports.includes(s)).length;
+    const sharedCategories = (other.categories ?? []).filter((c) => (listing.categories ?? []).includes(c)).length;
+    const sharedTypes = other.types.filter((t) => listing.types.includes(t)).length;
+    if (sharedSports + sharedCategories === 0) return 0;
+    return sharedCategories * 3 + sharedSports * 2 + sharedTypes * 2 + (other.country && other.country === listing.country ? 1 : 0);
+  };
+  return (await getListings())
+    .filter((other) => other.slug !== listing.slug)
+    .map((other) => ({ other, points: score(other) }))
+    .filter((entry) => entry.points > 0)
+    .sort((a, b) => b.points - a.points || a.other.name.localeCompare(b.other.name))
+    .slice(0, limit)
+    .map((entry) => entry.other);
 }
 
 export async function getListing(slug: string): Promise<Listing | undefined> {

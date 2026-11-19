@@ -36,6 +36,10 @@ export type Listing = {
   certified?: boolean;
   /** An offer the listing gives Grinners visitors. Only present while it is still running. */
   deal?: { text: string; code?: string; expires?: string };
+  /** When the listing was added, for "Newest" sorting. */
+  addedAt?: string;
+  /** Database id. Only used to match click rankings; never shown. */
+  id?: string;
   /** Extra screenshots shown on the profile. */
   gallery?: string[];
 };

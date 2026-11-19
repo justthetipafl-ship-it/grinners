@@ -3,8 +3,8 @@ import { countryName } from "@/lib/countries";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CertifiedBadge, Chip, ContentCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
-import { getContent, getListing, getListings, getTips, gradedRecord } from "@/lib/data";
+import { CertifiedBadge, Chip, ContentCard, ListingCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
+import { getContent, getListing, getListings, getSimilarListings, getTips, gradedRecord } from "@/lib/data";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { shareToX } from "@/lib/site";
 import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
@@ -31,7 +31,11 @@ export default async function ListingPage({ params }: Props) {
   // A profile lives under the directory of its first type only, so there is one address per listing.
   if (!dir || !listing || directoryForType(listing.types[0]) !== directory) notFound();
 
-  const [tips, content] = await Promise.all([getTips({ listingSlug: slug }), getContent({ listingSlug: slug, limit: 4 })]);
+  const [tips, content, similar] = await Promise.all([
+    getTips({ listingSlug: slug }),
+    getContent({ listingSlug: slug, limit: 4 }),
+    getSimilarListings(listing),
+  ]);
   const record = gradedRecord(tips);
   const shareUrl = shareToX(`${listing.name} on Grinners`, `/${directory}/${slug}`);
 
@@ -207,8 +211,22 @@ export default async function ListingPage({ params }: Props) {
           <a href={shareUrl} target="_blank" rel="noopener" className="flex h-10 items-center justify-center rounded-control border border-line text-sm text-muted hover:text-fg">
             Share to X
           </a>
+          <Link href={`/listed/${slug}`} className="text-center text-xs text-muted underline-offset-4 hover:text-fg hover:underline">
+            Is this you? Get a badge for your site
+          </Link>
         </aside>
       </div>
+
+      {similar.length > 0 && (
+        <section className="mt-12">
+          <h2 className="mb-3 font-semibold">Similar to {listing.name}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {similar.map((l) => (
+              <ListingCard key={l.slug} listing={l} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
