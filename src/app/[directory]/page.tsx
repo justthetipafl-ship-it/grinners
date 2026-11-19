@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingCard } from "@/components/Cards";
 import { categorySlug, getListings, getPopularIds, getSports } from "@/lib/data";
+import { FilterMenu } from "@/components/FilterMenu";
 import { Flag } from "@/components/Flag";
 import { COUNTRIES } from "@/lib/countries";
 import { DIRECTORIES, type DirectoryKey, type PricingModel } from "@/lib/types";
@@ -37,18 +38,6 @@ const PRICING: { value: PricingModel; label: string }[] = [
   { value: "paid", label: "Paid" },
 ];
 
-function FilterChip({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      scroll={false}
-      aria-current={active ? "true" : undefined}
-      className={`shrink-0 rounded-full border px-3.5 py-2 text-sm ${active ? "border-fg bg-fg text-ink" : "border-line text-muted hover:text-fg"}`}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export default async function DirectoryPage({ params, searchParams }: Props) {
   const { directory } = await params;
@@ -115,94 +104,82 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
       <h1 className="display text-4xl uppercase sm:text-5xl">{dir.title}</h1>
       <p className="mt-2 max-w-2xl text-muted">{dir.blurb}</p>
 
-      <div className="mt-6 flex flex-col gap-2">
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by sport">
-          <FilterChip href={link({ sport: undefined })} active={!sport}>
-            All sports
-          </FilterChip>
-          {sports.map((s) => (
-            <FilterChip key={s.slug} href={link({ sport: s.slug })} active={sport === s.slug}>
-              {s.name}
-            </FilterChip>
-          ))}
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="sm:w-44">
+          <FilterMenu
+            label="Sport"
+            options={[
+              { label: "All sports", href: link({ sport: undefined }), active: !sport },
+              ...sports.map((s) => ({ label: s.name, href: link({ sport: s.slug }), active: sport === s.slug })),
+            ]}
+          />
         </div>
         {categories.length > 1 && (
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by category">
-            <FilterChip href={link({ category: undefined })} active={!category}>
-              All categories
-            </FilterChip>
-            {categories.map((c) => (
-              <FilterChip key={c} href={link({ category: categorySlug(c) })} active={category === categorySlug(c)}>
-                {c}
-              </FilterChip>
-            ))}
+          <div className="sm:w-52">
+            <FilterMenu
+              label="Category"
+              options={[
+                { label: "All categories", href: link({ category: undefined }), active: !category },
+                ...categories.map((c) => ({ label: c, href: link({ category: categorySlug(c) }), active: category === categorySlug(c) })),
+              ]}
+            />
           </div>
         )}
-        {(countries.length > 1 || anyCertified || anyDeals) && (
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by country and badge">
-            {countries.length > 1 && (
-              <>
-                <FilterChip href={link({ country: undefined })} active={!country}>
-                  Anywhere
-                </FilterChip>
-                {countries.map((c) => (
-                  <FilterChip key={c.code} href={link({ country: c.code })} active={country === c.code}>
-                    <span className="flex items-center gap-2">
-                      <Flag code={c.code} className="h-3" />
-                      {c.name}
-                    </span>
-                  </FilterChip>
-                ))}
-              </>
-            )}
-            {anyCertified && (
-              <FilterChip href={link({ show: show === "certified" ? undefined : "certified" })} active={show === "certified"}>
-                Certified Grinners
-              </FilterChip>
-            )}
-            {anyDeals && (
-              <FilterChip href={link({ show: show === "deals" ? undefined : "deals" })} active={show === "deals"}>
-                With a deal
-              </FilterChip>
-            )}
+        {countries.length > 1 && (
+          <div className="sm:w-44">
+            <FilterMenu
+              label="Country"
+              options={[
+                { label: "Anywhere", href: link({ country: undefined }), active: !country },
+                ...countries.map((c) => ({ label: c.name, href: link({ country: c.code }), active: country === c.code, icon: <Flag code={c.code} className="h-3" /> })),
+              ]}
+            />
           </div>
         )}
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filter by price">
-          <FilterChip href={link({ pricing: undefined })} active={!pricing}>
-            Any price
-          </FilterChip>
-          {PRICING.map((p) => (
-            <FilterChip key={p.value} href={link({ pricing: p.value })} active={pricing === p.value}>
-              {p.label}
-            </FilterChip>
-          ))}
+        <div className="sm:w-36">
+          <FilterMenu
+            label="Price"
+            options={[
+              { label: "Any price", href: link({ pricing: undefined }), active: !pricing },
+              ...PRICING.map((p) => ({ label: p.label, href: link({ pricing: p.value }), active: pricing === p.value })),
+            ]}
+          />
+        </div>
+        {(anyCertified || anyDeals) && (
+          <div className="sm:w-48">
+            <FilterMenu
+              label="Show"
+              options={[
+                { label: "Everything", href: link({ show: undefined }), active: show !== "certified" && show !== "deals" },
+                ...(anyCertified ? [{ label: "Certified Grinners", href: link({ show: "certified" }), active: show === "certified" }] : []),
+                ...(anyDeals ? [{ label: "With a deal", href: link({ show: "deals" }), active: show === "deals" }] : []),
+              ]}
+            />
+          </div>
+        )}
+        <div className="sm:ml-auto sm:w-44">
+          <FilterMenu
+            label="Sort by"
+            align="right"
+            options={[
+              { label: "Featured first", href: link({ sort: undefined }), active: !["new", "popular", "az"].includes(sort ?? "") },
+              ...(canSortByNewest ? [{ label: "Newest", href: link({ sort: "new" }), active: sort === "new" }] : []),
+              ...(canSortByClicks ? [{ label: "Most clicked", href: link({ sort: "popular" }), active: sort === "popular" }] : []),
+              { label: "A–Z", href: link({ sort: "az" }), active: sort === "az" },
+            ]}
+          />
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <p className="font-mono text-xs text-muted">
           {sorted.length} {sorted.length === 1 ? "result" : "results"}
           {pages > 1 ? ` · page ${current} of ${pages}` : ""}
         </p>
-        {sorted.length > 3 && (
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted" aria-label="Sort">
-            <span>Sort:</span>
-            {[
-              { value: undefined, label: "Featured first", on: true },
-              { value: "new", label: "Newest", on: canSortByNewest },
-              { value: "popular", label: "Most clicked", on: canSortByClicks },
-              { value: "az", label: "A–Z", on: true },
-            ]
-              .filter((option) => option.on)
-              .map((option) => {
-                const active = (sort ?? undefined) === option.value || (!option.value && !["new", "popular", "az"].includes(sort ?? ""));
-                return (
-                  <Link key={option.label} href={link({ sort: option.value })} scroll={false} aria-current={active ? "true" : undefined} className={active ? "font-semibold text-fg" : "underline-offset-4 hover:text-fg hover:underline"}>
-                    {option.label}
-                  </Link>
-                );
-              })}
-          </p>
+        {(sport || category || country || pricing || show) && (
+          <Link href={link({ sport: undefined, category: undefined, country: undefined, pricing: undefined, show: undefined })} scroll={false} className="text-xs text-muted underline underline-offset-4 hover:text-fg">
+            Clear filters
+          </Link>
         )}
       </div>
       {listings.length ? (
