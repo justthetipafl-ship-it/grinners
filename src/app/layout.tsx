@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "@fontsource-variable/archivo/wdth.css";
@@ -22,7 +22,11 @@ export const metadata: Metadata = {
     locale: "en_AU",
   },
   twitter: { card: "summary_large_image", site: `@${X_HANDLE}` },
+  // The name under the icon when the site is saved to a phone's home screen.
+  appleWebApp: { title: "Grinners", capable: true, statusBarStyle: "black-translucent" },
 };
+
+export const viewport: Viewport = { themeColor: "#0e1012" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
