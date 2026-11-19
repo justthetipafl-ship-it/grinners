@@ -7,6 +7,7 @@ const NAV = [
   { href: "/podcasts", label: "Podcasts" },
   { href: "/youtube", label: "YouTube" },
   { href: "/creators", label: "Creators" },
+  { href: "/news", label: "News" },
   { href: "/articles", label: "Articles" },
   { href: "/tips", label: "Free Tips" },
 ];

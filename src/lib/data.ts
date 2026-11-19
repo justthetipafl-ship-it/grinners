@@ -35,6 +35,15 @@ function warn(what: string, error: { message: string } | null) {
   if (error) console.error(`[data] ${what}: ${error.message}`);
 }
 
+/** A deal shows until the end of its last day, Brisbane time. No end date means it runs until removed. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function activeDeal(deal: any): Listing["deal"] {
+  if (!deal || typeof deal.text !== "string" || !deal.text.trim()) return undefined;
+  const expires = typeof deal.expires === "string" && /^\d{4}-\d{2}-\d{2}$/.test(deal.expires) ? deal.expires : undefined;
+  if (expires && Date.now() > Date.parse(`${expires}T23:59:59+10:00`)) return undefined;
+  return { text: deal.text.trim(), code: typeof deal.code === "string" && deal.code.trim() ? deal.code.trim() : undefined, expires };
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any -- rows arrive from the database untyped */
 function toListing(row: any): Listing {
   const link = (row.affiliate_links ?? []).find((a: any) => a.is_active);
@@ -68,6 +77,9 @@ function toListing(row: any): Listing {
     isSponsored: row.is_sponsored,
     ownershipDisclosure: row.ownership_disclosure ?? undefined,
     features: row.features?.length ? row.features : undefined,
+    certified: row.attributes?.certified === true || undefined,
+    deal: activeDeal(row.attributes?.deal),
+    gallery: Array.isArray(row.attributes?.gallery) && row.attributes.gallery.length ? row.attributes.gallery.map(String) : undefined,
   };
 }
 

@@ -10,6 +10,7 @@ const TYPES = [
   ["podcast", "Podcast"],
   ["youtube", "YouTube"],
   ["creator", "Creator"],
+  ["news", "News & Alerts"],
 ] as const;
 
 const input = "h-11 w-full rounded-control border border-line bg-raised px-3";
@@ -69,6 +70,7 @@ export default async function EditListing({ params, searchParams }: Props) {
     .join("\n");
   const cta = (l.affiliate_links ?? []).find((a: any) => a.is_active);
   const selectedCategories: string[] = Array.isArray(l.attributes?.categories) ? l.attributes.categories : l.category ? [l.category] : [];
+  const gallery: string[] = Array.isArray(l.attributes?.gallery) ? l.attributes.gallery : [];
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
@@ -146,6 +148,27 @@ export default async function EditListing({ params, searchParams }: Props) {
         )}
       </Group>
 
+      <Group title="Gallery">
+        <p className="text-sm text-muted">Extra screenshots shown on the profile, up to 8. Each under 1.5 MB. Add two at a time, pressing Save between.</p>
+        {gallery.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {gallery.map((url) => (
+              <label key={url} className="flex flex-col gap-1.5 text-xs text-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="aspect-video w-full rounded-control border border-line bg-raised object-contain" />
+                <span className="flex items-center gap-2">
+                  <input type="checkbox" name="gallery_remove" value={url} className="h-4 w-4 accent-[var(--color-loss)]" />
+                  Remove
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+        {gallery.length < 8 && (
+          <input name="gallery" type="file" accept="image/*" multiple className="text-sm text-muted file:mr-3 file:h-10 file:rounded-control file:border-0 file:bg-raised file:px-4 file:text-fg" />
+        )}
+      </Group>
+
       <Group title="What they cover">
         <div>
           <p className="mb-1 text-sm font-medium">Sports</p>
@@ -220,7 +243,31 @@ export default async function EditListing({ params, searchParams }: Props) {
         </Field>
       </Group>
 
+      <Group title="Grinners deal">
+        <p className="text-sm text-muted">
+          An offer this listing gives Grinners visitors, shown on its profile and on the Deals page. Tools, memberships and subscriptions only: never a
+          bookmaker or betting-account offer. Visitors claim it through the main button above.
+        </p>
+        <Field label="The deal" hint="Leave blank for no deal. Example: 20% off your first three months">
+          <input name="deal_text" defaultValue={l.attributes?.deal?.text ?? ""} className={input} maxLength={120} />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Code (optional)">
+            <input name="deal_code" defaultValue={l.attributes?.deal?.code ?? ""} className={`${input} font-mono`} placeholder="GRINNERS" maxLength={40} />
+          </Field>
+          <Field label="Last day (optional)" hint="The deal hides itself after this date.">
+            <input name="deal_expires" type="date" defaultValue={l.attributes?.deal?.expires ?? ""} className={input} />
+          </Field>
+        </div>
+      </Group>
+
       <Group title="Disclosure and vetting">
+        <div className="rounded-control border border-grin/40 bg-grin/5 p-3">
+          <Check name="certified" label="Certified Grinner (shows the badge)" checked={l.attributes?.certified === true} />
+          <p className="text-xs text-muted">
+            Only for listings you&apos;ve used yourself and approve of. A paid product must give Grinners access first. The badge can&apos;t be bought.
+          </p>
+        </div>
         <Check name="is_sponsored" label="Sponsored placement (shows the “Sponsored” label)" checked={l.is_sponsored} />
         <Check name="is_featured" label="Featured on the homepage" checked={l.is_featured} />
         <Field label="Ownership disclosure" hint="Fill in if you own or have a stake in this listing. Shown on the profile.">

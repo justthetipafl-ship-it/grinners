@@ -16,7 +16,24 @@ const TYPE_LABEL = {
   podcast: "Podcast",
   youtube: "YouTube",
   creator: "Creator",
+  news: "News & Alerts",
 } as const;
+
+/** The mark for listings the Grinners team has checked and approves of. */
+export function CertifiedBadge({ compact = false }: { compact?: boolean }) {
+  return compact ? (
+    <span title="Certified Grinner" aria-label="Certified Grinner" role="img" className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-grin text-ink">
+      <GrinTick size={11} />
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-grin/50 bg-grin/10 py-0.5 pl-1 pr-2.5 text-xs font-semibold text-grin">
+      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-grin text-ink">
+        <GrinTick size={10} />
+      </span>
+      Certified Grinner
+    </span>
+  );
+}
 const PRICING_LABEL = {
   free: "Free",
   paid: "Paid",
@@ -99,7 +116,16 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <div className="flex items-start gap-3">
           <Monogram listing={listing} />
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 font-semibold leading-snug">{listing.name}</h3>
+            <h3 className="font-semibold leading-snug">
+              <span className="line-clamp-2">
+                {listing.name}
+                {listing.certified && (
+                  <span className="ml-1.5 inline-block align-[-3px]">
+                    <CertifiedBadge compact />
+                  </span>
+                )}
+              </span>
+            </h3>
             <p className="flex items-center gap-1.5 text-xs text-muted">
               <Flag code={listing.country} className="h-3" />
               {listing.types.map((t) => TYPE_LABEL[t]).join(" · ")}
@@ -115,7 +141,8 @@ export function ListingCard({ listing }: { listing: Listing }) {
           {listing.sports.length > 3 && (
             <Chip>+{listing.sports.length - 2}</Chip>
           )}
-          <span className="ml-auto shrink-0 pl-2 text-xs text-muted">
+          {listing.deal && <span className="ml-auto shrink-0 rounded-full border border-fg/40 px-2 py-0.5 text-[11px] font-semibold text-fg">Deal</span>}
+          <span className={`${listing.deal ? "" : "ml-auto "}shrink-0 pl-2 text-xs text-muted`}>
             {PRICING_LABEL[listing.pricing]}
           </span>
         </div>

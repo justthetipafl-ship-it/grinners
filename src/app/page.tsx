@@ -28,6 +28,7 @@ export default async function Home() {
   const featured = featuredAll.slice(0, FEATURED_LIMIT);
   // Tools row: the most-clicked when there's enough data. Otherwise tools the Featured row
   // isn't already showing, so the same cards don't appear twice in a row.
+  const deals = all.filter((l) => l.deal).slice(0, 3);
   const shownAbove = new Set(featured.map((l) => l.slug));
   const freshTools = tools.filter((l) => !shownAbove.has(l.slug));
   const toolsRow = popularTools ?? (freshTools.length >= 3 ? freshTools : tools).slice(0, 3);
@@ -59,7 +60,7 @@ export default async function Home() {
       </section>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-12">
-        <section aria-label="Browse by category" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <section aria-label="Browse by category" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {(Object.keys(DIRECTORIES) as DirectoryKey[]).map((key) => (
             <Link key={key} href={`/${key}`} className="rounded-card border border-line bg-surface p-4 transition-colors hover:bg-raised">
               <p className="display text-lg">{DIRECTORIES[key].title}</p>
@@ -101,6 +102,22 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        )}
+
+        {deals.length > 0 && (
+          <section>
+            <SectionHeading title="Grinners deals" href="/deals" linkLabel="All deals" />
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {deals.map((l) => (
+                <li key={l.slug}>
+                  <Link href={listingHref(l)} className="flex h-full flex-col gap-1 rounded-card border border-line bg-surface p-4 transition-colors hover:bg-raised">
+                    <span className="font-semibold">{l.deal!.text}</span>
+                    <span className="text-sm text-muted">{l.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {tips.length > 0 && (

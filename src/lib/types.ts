@@ -1,4 +1,4 @@
-export type ListingType = "tipster" | "tool" | "podcast" | "youtube" | "creator";
+export type ListingType = "tipster" | "tool" | "podcast" | "youtube" | "creator" | "news";
 export type PricingModel = "free" | "paid" | "freemium";
 export type TipResult = "pending" | "won" | "lost" | "void";
 
@@ -32,6 +32,12 @@ export type Listing = {
   isSponsored?: boolean;
   ownershipDisclosure?: string;
   features?: string[];
+  /** Certified Grinner: a listing the Grinners team has checked and approves of. */
+  certified?: boolean;
+  /** An offer the listing gives Grinners visitors. Only present while it is still running. */
+  deal?: { text: string; code?: string; expires?: string };
+  /** Extra screenshots shown on the profile. */
+  gallery?: string[];
 };
 
 export type Tip = {
@@ -86,6 +92,7 @@ export const DIRECTORIES = {
   podcasts: { type: "podcast", title: "Podcasts", blurb: "Betting and fantasy shows worth your commute." },
   youtube: { type: "youtube", title: "YouTube", blurb: "Channels breaking down the slate, the stats and the strategy." },
   creators: { type: "creator", title: "Creators", blurb: "Analysts, personalities and accounts that make sport smarter." },
+  news: { type: "news", title: "News & Alerts", blurb: "Team news, injury updates and lineup alerts for sport and fantasy." },
 } as const satisfies Record<string, { type: ListingType; title: string; blurb: string }>;
 
 export type DirectoryKey = keyof typeof DIRECTORIES;

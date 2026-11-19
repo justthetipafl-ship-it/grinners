@@ -3,13 +3,15 @@ import { countryName } from "@/lib/countries";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chip, ContentCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
+import { CertifiedBadge, Chip, ContentCard, DisclosureBadge, Monogram, TipCard } from "@/components/Cards";
 import { getContent, getListing, getListings, getTips, gradedRecord } from "@/lib/data";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { shareToX } from "@/lib/site";
 import { DIRECTORIES, directoryForType, type DirectoryKey } from "@/lib/types";
 
 type Props = { params: Promise<{ directory: string; slug: string }> };
+
+const formatDay = (day: string) => new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${day}T00:00:00Z`));
 
 export async function generateStaticParams() {
   const listings = await getListings();
@@ -46,6 +48,13 @@ export default async function ListingPage({ params }: Props) {
             <h1 className="display text-4xl">{listing.name}</h1>
             {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
           </div>
+          {listing.certified && (
+            <p className="mt-2">
+              <Link href="/editorial-policy#certified" title="What Certified Grinner means">
+                <CertifiedBadge />
+              </Link>
+            </p>
+          )}
           <p className="mt-2 text-lg text-muted">{listing.tagline}</p>
           {countryName(listing.country) && (
             <p className="mt-2 flex items-center gap-2 text-sm text-muted">
@@ -76,6 +85,20 @@ export default async function ListingPage({ params }: Props) {
           {listing.coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={listing.coverUrl} alt={`Preview of ${listing.name}`} className="h-auto max-h-[560px] w-full rounded-card border border-line bg-raised object-contain" />
+          )}
+          {listing.gallery && (
+            <section aria-label="Gallery">
+              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {listing.gallery.map((url, index) => (
+                  <li key={url}>
+                    <a href={url} target="_blank" rel="noopener" className="block overflow-hidden rounded-control border border-line bg-raised hover:border-muted/50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`${listing.name} screenshot ${index + 1}`} loading="lazy" className="aspect-video w-full object-contain" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
           <section>
             <h2 className="mb-2 font-semibold">About</h2>
@@ -133,6 +156,19 @@ export default async function ListingPage({ params }: Props) {
         </div>
 
         <aside className="flex h-fit flex-col gap-4 rounded-card border border-line bg-surface p-4">
+          {listing.deal && (
+            <div className="rounded-control border border-fg/30 bg-raised p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide">Grinners deal</p>
+              <p className="mt-1 font-semibold">{listing.deal.text}</p>
+              {listing.deal.code && (
+                <p className="mt-2 text-sm text-muted">
+                  Code <span className="select-all rounded border border-line bg-ink px-1.5 py-0.5 font-mono text-fg">{listing.deal.code}</span>
+                </p>
+              )}
+              {listing.deal.expires && <p className="mt-2 text-xs text-muted">Ends {formatDay(listing.deal.expires)}</p>}
+              <p className="mt-2 text-xs text-muted">Offered by {listing.name}. Check the terms on their site.</p>
+            </div>
+          )}
           <div>
             <p className="text-xs uppercase tracking-wide text-muted">Pricing</p>
             <p className="mt-1 font-semibold">{{ free: "Free", paid: "Paid", freemium: "Free + paid" }[listing.pricing]}</p>

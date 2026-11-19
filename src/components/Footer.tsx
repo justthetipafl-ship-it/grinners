@@ -27,6 +27,7 @@ const BUILT_BY = {
 
 const LINKS = [
   { href: "/about", label: "About" },
+  { href: "/deals", label: "Deals" },
   { href: "/submit", label: "Suggest a listing" },
   { href: "/how-we-make-money", label: "How we make money" },
   { href: "/editorial-policy", label: "Editorial policy" },

@@ -8,6 +8,7 @@ import { COUNTRIES } from "@/lib/countries";
 
 // Two images can be sent in one save, and the host caps a request at about 4.5 MB.
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
+const MAX_GALLERY_IMAGES = 8;
 
 const text = (form: FormData, name: string) => String(form.get(name) ?? "").trim();
 const lines = (value: string) =>
@@ -53,6 +54,9 @@ export async function saveListing(form: FormData) {
   if (!name) fail("Give the listing a name.");
   if (!slug) fail("The web address (slug) can't be empty.");
   if (types.length === 0) fail("Tick at least one type.");
+  // Checked before anything is saved: one oversized request would otherwise fail with no explanation.
+  const uploadBytes = ["logo", "cover", "gallery"].flatMap((field) => form.getAll(field)).reduce((sum, f) => sum + (f instanceof File ? f.size : 0), 0);
+  if (uploadBytes > 3.5 * 1024 * 1024) fail("Those images add up to more than 3.5 MB. Save with fewer at a time: two gallery images per save is safe.");
   if (status === "published" && !vetted) fail("Tick the vetting checklist before publishing.");
 
   const categoryList = form.getAll("categories").map(String).filter(Boolean);
@@ -97,6 +101,7 @@ export async function saveListing(form: FormData) {
   const current = await supabase.from("listings").select("attributes").eq("id", listingId).single();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const attributes = { ...((current.data?.attributes ?? {}) as Record<string, any>) };
+  const attributesBefore = JSON.stringify(attributes);
   const feedChanged = (attributes.feed_url ?? "") !== feedInput;
   if (feedChanged) {
     if (feedInput) attributes.feed_url = feedInput;
@@ -114,9 +119,62 @@ export async function saveListing(form: FormData) {
     if (country) attributes.country = country;
     else delete attributes.country;
   }
-  if (feedChanged || categoriesChanged || countryChanged) {
+
+  // Certified Grinner badge. The date it was first given is kept.
+  if (form.get("certified") === "on") {
+    if (!attributes.certified) attributes.certified_at = new Date().toISOString();
+    attributes.certified = true;
+  } else {
+    delete attributes.certified;
+    delete attributes.certified_at;
+  }
+
+  // Deal for Grinners visitors: what it is, an optional code and an optional last day.
+  const dealText = text(form, "deal_text");
+  const dealExpires = text(form, "deal_expires");
+  if (dealText) {
+    attributes.deal = { text: dealText, code: text(form, "deal_code") || undefined, expires: /^\d{4}-\d{2}-\d{2}$/.test(dealExpires) ? dealExpires : undefined };
+  } else {
+    delete attributes.deal;
+  }
+
+  // Gallery: remove the ticked images, then add any new ones.
+  let gallery: string[] = Array.isArray(attributes.gallery) ? attributes.gallery.map(String) : [];
+  const removeFromGallery = form.getAll("gallery_remove").map(String);
+  if (removeFromGallery.length) {
+    const paths = removeFromGallery.filter((url) => gallery.includes(url)).map(storedImagePath).filter((p): p is string => Boolean(p));
+    if (paths.length) await supabase.storage.from("images").remove(paths);
+    gallery = gallery.filter((url) => !removeFromGallery.includes(url));
+  }
+  const galleryFiles = form.getAll("gallery").filter((f): f is File => f instanceof File && f.size > 0);
+  for (const [index, file] of galleryFiles.entries()) {
+    if (gallery.length >= MAX_GALLERY_IMAGES) {
+      problems.push(`Some gallery images weren't added: a listing can hold ${MAX_GALLERY_IMAGES}.`);
+      break;
+    }
+    if (!file.type.startsWith("image/")) {
+      problems.push(`Gallery: ${file.name} isn't an image.`);
+      continue;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      problems.push(`Gallery: ${file.name} is over 1.5 MB.`);
+      continue;
+    }
+    const extension = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `gallery/${listingId}-${Date.now()}-${index}.${extension}`;
+    const upload = await supabase.storage.from("images").upload(path, file, { contentType: file.type });
+    if (upload.error) {
+      problems.push(`Gallery: ${file.name} wasn't saved: ${upload.error.message}`);
+      continue;
+    }
+    gallery.push(supabase.storage.from("images").getPublicUrl(path).data.publicUrl);
+  }
+  if (gallery.length) attributes.gallery = gallery;
+  else delete attributes.gallery;
+
+  if (JSON.stringify(attributes) !== attributesBefore) {
     const { error } = await supabase.from("listings").update({ attributes }).eq("id", listingId);
-    if (error) problems.push(`Country, categories and feed address weren't saved: ${error.message}`);
+    if (error) problems.push(`Country, categories, badge, deal, gallery and feed address weren't saved: ${error.message}`);
   }
 
   // Social links: one per line, written as "Platform | https://address".
@@ -371,7 +429,7 @@ export async function reviewSubmission(form: FormData) {
   const payload = (submission?.payload ?? {}) as any;
   const name = String(payload.name ?? "").trim();
   if (!name) redirect("/admin/submissions");
-  const allowed = ["tipster", "tool", "podcast", "youtube", "creator"];
+  const allowed = ["tipster", "tool", "podcast", "youtube", "creator", "news"];
   const created = await supabase
     .from("listings")
     .insert({
@@ -457,7 +515,7 @@ export async function deleteListing(form: FormData) {
   if (form.get("confirm") !== "on") {
     redirect(`/admin/listings/${id}?error=${encodeURIComponent("Tick the box to confirm before deleting.")}`);
   }
-  const { data: listing } = await supabase.from("listings").select("name, logo_url, cover_url").eq("id", id).maybeSingle();
+  const { data: listing } = await supabase.from("listings").select("name, logo_url, cover_url, attributes").eq("id", id).maybeSingle();
   if (!listing) redirect("/admin/listings");
 
   // Its button link would otherwise be left behind, pointing at nothing.
@@ -466,7 +524,9 @@ export async function deleteListing(form: FormData) {
   if (error) redirect(`/admin/listings/${id}?error=${encodeURIComponent(`Couldn't delete: ${error.message}`)}`);
 
   // Tidy up its uploaded images. If this fails the listing is still gone, so it isn't reported.
-  const images = [storedImagePath(listing!.logo_url), storedImagePath(listing!.cover_url)].filter((p): p is string => Boolean(p));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const galleryUrls: string[] = Array.isArray((listing as any).attributes?.gallery) ? (listing as any).attributes.gallery : [];
+  const images = [listing!.logo_url, listing!.cover_url, ...galleryUrls].map(storedImagePath).filter((p): p is string => Boolean(p));
   if (images.length) await supabase.storage.from("images").remove(images);
 
   revalidatePath("/", "layout");
