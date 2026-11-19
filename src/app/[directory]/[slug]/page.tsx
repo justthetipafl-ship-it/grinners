@@ -48,13 +48,7 @@ export default async function ListingPage({ params }: Props) {
             <h1 className="display text-4xl">{listing.name}</h1>
             {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
           </div>
-          {listing.certified && (
-            <p className="mt-2">
-              <Link href="/editorial-policy#certified" title="What Certified Grinner means">
-                <CertifiedBadge />
-              </Link>
-            </p>
-          )}
+
           <p className="mt-2 text-lg text-muted">{listing.tagline}</p>
           {countryName(listing.country) && (
             <p className="mt-2 flex items-center gap-2 text-sm text-muted">
@@ -78,6 +72,11 @@ export default async function ListingPage({ params }: Props) {
             </div>
           )}
         </div>
+        {listing.certified && (
+          <Link href="/editorial-policy#certified" title="What Certified Grinner means" className="order-first self-start sm:order-none">
+            <CertifiedBadge size="lg" />
+          </Link>
+        )}
       </header>
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1fr_280px]">

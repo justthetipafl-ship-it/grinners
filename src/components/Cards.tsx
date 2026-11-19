@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- uploaded images come from Supabase storage; plain img avoids per-domain image configuration */
 import { Flag } from "@/components/Flag";
 import Link from "next/link";
-import { GrinTick } from "./Logo";
+import { GrinMark, GrinTick } from "./Logo";
 import {
   directoryForType,
   type Article,
@@ -19,18 +19,17 @@ const TYPE_LABEL = {
   news: "News & Alerts",
 } as const;
 
-/** The mark for listings the Grinners team has checked and approves of. */
-export function CertifiedBadge({ compact = false }: { compact?: boolean }) {
-  return compact ? (
-    <span title="Certified Grinner" aria-label="Certified Grinner" role="img" className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-grin text-ink">
-      <GrinTick size={11} />
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-grin/50 bg-grin/10 py-0.5 pl-1 pr-2.5 text-xs font-semibold text-grin">
-      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-grin text-ink">
-        <GrinTick size={10} />
+/** The mark for listings the Grinners team has checked and approves of: the Grinners badge with its name underneath. */
+export function CertifiedBadge({ size = "sm" }: { size?: "sm" | "lg" }) {
+  const large = size === "lg";
+  return (
+    <span role="img" aria-label="Certified Grinner" title="Certified Grinner" className="flex shrink-0 flex-col items-center gap-1 text-center">
+      <GrinMark size={large ? 44 : 28} />
+      <span aria-hidden="true" className={`font-semibold uppercase leading-[1.15] tracking-wider text-grin ${large ? "text-[10px]" : "text-[8px]"}`}>
+        Certified
+        <br />
+        Grinner
       </span>
-      Certified Grinner
     </span>
   );
 }
@@ -116,22 +115,18 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <div className="flex items-start gap-3">
           <Monogram listing={listing} />
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold leading-snug">
-              <span className="line-clamp-2">
-                {listing.name}
-                {listing.certified && (
-                  <span className="ml-1.5 inline-block align-[-3px]">
-                    <CertifiedBadge compact />
-                  </span>
-                )}
-              </span>
-            </h3>
+            <h3 className="line-clamp-2 font-semibold leading-snug">{listing.name}</h3>
             <p className="flex items-center gap-1.5 text-xs text-muted">
               <Flag code={listing.country} className="h-3" />
               {listing.types.map((t) => TYPE_LABEL[t]).join(" · ")}
             </p>
           </div>
-          {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
+          {(listing.certified || listing.isSponsored) && (
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              {listing.certified && <CertifiedBadge />}
+              {listing.isSponsored && <DisclosureBadge kind="Sponsored" />}
+            </div>
+          )}
         </div>
         <p className="line-clamp-3 text-sm text-muted">{listing.tagline}</p>
         <div className="mt-auto flex items-center gap-1.5 overflow-hidden pt-1 whitespace-nowrap">
