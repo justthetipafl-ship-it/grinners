@@ -424,7 +424,12 @@ export async function reviewSubmission(form: FormData) {
   }
 
   // Approve: start a draft listing from the suggestion, then open it for editing and vetting.
-  const { data: submission } = await supabase.from("submissions").select("payload").eq("id", id).maybeSingle();
+  const { data: submission } = await supabase.from("submissions").select("kind, payload").eq("id", id).maybeSingle();
+  // A spotlight request has no listing to create: accepting it only records the decision.
+  if (submission?.kind === "feature_request") {
+    await supabase.from("submissions").update({ status: "approved" }).eq("id", id);
+    redirect("/admin/submissions");
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload = (submission?.payload ?? {}) as any;
   const name = String(payload.name ?? "").trim();

@@ -28,7 +28,8 @@ const BUILT_BY = {
 const LINKS = [
   { href: "/about", label: "About" },
   { href: "/deals", label: "Deals" },
-  { href: "/submit", label: "Suggest a listing" },
+  { href: "/submit", label: "Get listed" },
+  { href: "/spotlight/request", label: "Request a spotlight" },
   { href: "/how-we-make-money", label: "How we make money" },
   { href: "/editorial-policy", label: "Editorial policy" },
   { href: "/terms", label: "Terms" },

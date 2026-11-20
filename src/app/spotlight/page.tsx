@@ -19,7 +19,12 @@ export default async function SpotlightsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="display text-4xl uppercase sm:text-5xl">Spotlights</h1>
-      <p className="mt-2 max-w-2xl text-muted">Who we&apos;ve featured, newest first. Paid spotlights are labelled.</p>
+      <p className="mt-2 max-w-2xl text-muted">Who we&apos;ve featured, newest first. Paid spotlights are labelled.{" "}
+        <Link href="/spotlight/request" className="text-fg underline">
+          Request a spotlight
+        </Link>
+        .
+      </p>
       <ul className="mt-8 flex flex-col gap-3">
         {shown.map((s, i) => {
           const listing = bySlug.get(s.listingSlug)!;
