@@ -169,6 +169,21 @@ export default async function ListingPage({ params }: Props) {
                 </p>
               )}
               {listing.deal.expires && <p className="mt-2 text-xs text-muted">Ends {formatDay(listing.deal.expires)}</p>}
+              {listing.deal.url && (
+                <a
+                  href={`/go/deal/${slug}`}
+                  target="_blank"
+                  rel={listing.deal.affiliate ? "sponsored nofollow noopener" : "nofollow noopener"}
+                  className="mt-3 flex h-10 items-center justify-center rounded-control bg-fg text-sm font-semibold text-ink hover:brightness-90"
+                >
+                  Claim this deal
+                </a>
+              )}
+              {listing.deal.url && listing.deal.affiliate && (
+                <p className="mt-2 flex items-center gap-2 text-xs text-muted">
+                  <DisclosureBadge kind="Affiliate link" /> Grinners may earn a commission.
+                </p>
+              )}
               <p className="mt-2 text-xs text-muted">Offered by {listing.name}. Check the terms on their site.</p>
             </div>
           )}

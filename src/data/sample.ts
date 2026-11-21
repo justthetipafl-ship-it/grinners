@@ -36,7 +36,7 @@ export const listings: Listing[] = [
     cta: { label: "View membership", url: sample("backpocket/join"), affiliate: true },
     isFeatured: true,
     certified: true,
-    deal: { text: "First month half price for Grinners readers", code: "GRINNERS", expires: "2027-03-31" },
+    deal: { text: "First month half price for Grinners readers", code: "GRINNERS", expires: "2027-03-31", url: "https://example.com/grinners-deal", affiliate: true },
   },
   {
     slug: "late-mail-alerts",

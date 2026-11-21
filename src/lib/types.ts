@@ -35,7 +35,7 @@ export type Listing = {
   /** Certified Grinner: a listing the Grinners team has checked and approves of. */
   certified?: boolean;
   /** An offer the listing gives Grinners visitors. Only present while it is still running. */
-  deal?: { text: string; code?: string; expires?: string };
+  deal?: { text: string; code?: string; expires?: string; url?: string; affiliate?: boolean };
   /** When the listing was added, for "Newest" sorting. */
   addedAt?: string;
   /** Database id. Only used to match click rankings; never shown. */

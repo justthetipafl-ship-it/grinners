@@ -132,8 +132,17 @@ export async function saveListing(form: FormData) {
   // Deal for Grinners visitors: what it is, an optional code and an optional last day.
   const dealText = text(form, "deal_text");
   const dealExpires = text(form, "deal_expires");
+  const dealUrl = text(form, "deal_url");
+  if (dealText && dealUrl && !/^https?:\/\/\S+\.\S+/.test(dealUrl)) problems.push("The deal link wasn't saved: it needs to start with https://");
   if (dealText) {
-    attributes.deal = { text: dealText, code: text(form, "deal_code") || undefined, expires: /^\d{4}-\d{2}-\d{2}$/.test(dealExpires) ? dealExpires : undefined };
+    const validUrl = /^https?:\/\/\S+\.\S+/.test(dealUrl) ? dealUrl : undefined;
+    attributes.deal = {
+      text: dealText,
+      code: text(form, "deal_code") || undefined,
+      expires: /^\d{4}-\d{2}-\d{2}$/.test(dealExpires) ? dealExpires : undefined,
+      url: validUrl,
+      affiliate: validUrl && form.get("deal_affiliate") === "on" ? true : undefined,
+    };
   } else {
     delete attributes.deal;
   }

@@ -30,7 +30,19 @@ export default async function DealsPage() {
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {deals.map((listing) => (
             <li key={listing.slug} className="flex flex-col gap-2">
-              <p className="rounded-control border border-fg/30 bg-raised px-3 py-2 text-sm font-semibold">{listing.deal!.text}</p>
+              <div className="flex items-center gap-3 rounded-control border border-fg/30 bg-raised px-3 py-2">
+                <p className="flex-1 text-sm font-semibold">{listing.deal!.text}</p>
+                {listing.deal!.url && (
+                  <a
+                    href={`/go/deal/${listing.slug}`}
+                    target="_blank"
+                    rel={listing.deal!.affiliate ? "sponsored nofollow noopener" : "nofollow noopener"}
+                    className="flex h-9 shrink-0 items-center rounded-control bg-fg px-3 text-xs font-semibold text-ink hover:brightness-90"
+                  >
+                    Claim{listing.deal!.affiliate ? " (affiliate)" : ""}
+                  </a>
+                )}
+              </div>
               <div className="flex-1">
                 <ListingCard listing={listing} />
               </div>

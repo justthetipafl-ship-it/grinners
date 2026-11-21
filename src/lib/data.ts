@@ -41,7 +41,14 @@ function activeDeal(deal: any): Listing["deal"] {
   if (!deal || typeof deal.text !== "string" || !deal.text.trim()) return undefined;
   const expires = typeof deal.expires === "string" && /^\d{4}-\d{2}-\d{2}$/.test(deal.expires) ? deal.expires : undefined;
   if (expires && Date.now() > Date.parse(`${expires}T23:59:59+10:00`)) return undefined;
-  return { text: deal.text.trim(), code: typeof deal.code === "string" && deal.code.trim() ? deal.code.trim() : undefined, expires };
+  const url = typeof deal.url === "string" && /^https?:\/\/\S+\.\S+/.test(deal.url) ? deal.url : undefined;
+  return {
+    text: deal.text.trim(),
+    code: typeof deal.code === "string" && deal.code.trim() ? deal.code.trim() : undefined,
+    expires,
+    url,
+    affiliate: url ? deal.affiliate === true : undefined,
+  };
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- rows arrive from the database untyped */

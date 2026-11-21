@@ -246,7 +246,7 @@ export default async function EditListing({ params, searchParams }: Props) {
       <Group title="Grinners deal">
         <p className="text-sm text-muted">
           An offer this listing gives Grinners visitors, shown on its profile and on the Deals page. Tools, memberships and subscriptions only: never a
-          bookmaker or betting-account offer. Visitors claim it through the main button above.
+          bookmaker or betting-account offer. Visitors claim it through the deal link below, or the listing&apos;s main button if you leave the link blank.
         </p>
         <Field label="The deal" hint="Leave blank for no deal. Example: 20% off your first three months">
           <input name="deal_text" defaultValue={l.attributes?.deal?.text ?? ""} className={input} maxLength={120} />
@@ -259,6 +259,10 @@ export default async function EditListing({ params, searchParams }: Props) {
             <input name="deal_expires" type="date" defaultValue={l.attributes?.deal?.expires ?? ""} className={input} />
           </Field>
         </div>
+        <Field label="Deal link (optional)" hint="For deals with their own sign-up page. Shows a “Claim this deal” button, and clicks are counted.">
+          <input name="deal_url" type="url" defaultValue={l.attributes?.deal?.url ?? ""} className={input} placeholder="https://" maxLength={500} />
+        </Field>
+        <Check name="deal_affiliate" label="Grinners earns a commission through this deal link (shows the “Affiliate link” label)" checked={l.attributes?.deal?.affiliate === true} />
       </Group>
 
       <Group title="Disclosure and vetting">
