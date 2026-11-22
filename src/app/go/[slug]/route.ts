@@ -24,6 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } catch {
     return new NextResponse("Not found", { status: 404 });
   }
+  if (destination.protocol !== "https:" && destination.protocol !== "http:") return new NextResponse("Not found", { status: 404 });
   for (const [name, value] of [
     ["utm_source", link.utm_source],
     ["utm_medium", link.utm_medium],

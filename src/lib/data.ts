@@ -76,7 +76,9 @@ function toListing(row: any): Listing {
     pricingNote: row.pricing_note ?? undefined,
     links: [...(row.listing_links ?? [])]
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
-      .map((l: any) => ({ platform: l.platform, url: l.url })),
+      .map((l: any) => ({ platform: String(l.platform), url: String(l.url) }))
+      // Only plain web addresses are ever turned into links.
+      .filter((l: { url: string }) => /^https?:\/\//i.test(l.url)),
     cta: link ? { label: link.label, url: `/go/${link.slug}`, affiliate: link.is_affiliate } : undefined,
     country: typeof row.attributes?.country === "string" ? row.attributes.country : undefined,
     isFeatured: row.is_featured,

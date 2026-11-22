@@ -17,6 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } catch {
     return new NextResponse("Not found", { status: 404 });
   }
+  if (destination.protocol !== "https:" && destination.protocol !== "http:") return new NextResponse("Not found", { status: 404 });
   if (!destination.searchParams.has("utm_source")) destination.searchParams.set("utm_source", "grinners");
 
   if (isConfigured && listing.id) {

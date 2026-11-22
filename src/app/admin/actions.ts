@@ -67,7 +67,7 @@ export async function saveListing(form: FormData) {
     types,
     tagline: text(form, "tagline"),
     bio: text(form, "bio"),
-    website_url: text(form, "website_url") || null,
+    website_url: /^https?:\/\/\S+$/i.test(text(form, "website_url")) ? text(form, "website_url") : null,
     pricing: text(form, "pricing") || "free",
     pricing_note: text(form, "pricing_note") || null,
     sports: form.getAll("sports").map(String),
@@ -102,6 +102,11 @@ export async function saveListing(form: FormData) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const attributes = { ...((current.data?.attributes ?? {}) as Record<string, any>) };
   const attributesBefore = JSON.stringify(attributes);
+  // Internal checking notes are for drafts only. A published listing can be read through the public data API, so they're dropped.
+  if (status === "published") {
+    delete attributes.vet_note;
+    delete attributes.starter;
+  }
   const feedChanged = (attributes.feed_url ?? "") !== feedInput;
   if (feedChanged) {
     if (feedInput) attributes.feed_url = feedInput;
@@ -450,7 +455,8 @@ export async function reviewSubmission(form: FormData) {
       name,
       slug: `${slugify(name)}-${id.slice(0, 4)}`,
       types: [allowed.includes(payload.type) ? payload.type : "creator"],
-      website_url: typeof payload.url === "string" ? payload.url : null,
+      // Suggestions come from the public, so the link is only kept when it is a plain web address.
+      website_url: typeof payload.url === "string" && /^https?:\/\/\S+$/i.test(payload.url) ? payload.url.slice(0, 500) : null,
       status: "draft",
     })
     .select("id")

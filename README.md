@@ -40,6 +40,7 @@ Run these in Supabase's SQL Editor, once each, in order:
 - `supabase/migrations/0002_spotlight_archive.sql`: lets the `/spotlight` page show past spotlights. Until it's run, that page shows only the current one.
 - `supabase/migrations/0003_popular_listings.sql`: lets the homepage rank tools by real clicks. Until it's run, and until three tools each have at least three clicks in 30 days, that section is headed "Featured tools" and shows featured tools first.
 - `supabase/migrations/0004_news_directory.sql`: adds the News & Alerts listing type. Until it's run, the News page is empty and saving a listing ticked as News & Alerts fails.
+- `supabase/migrations/0005_hardening.sql`: size limits on public forms and click rows, and removes internal checking notes from published listings.
 
 ### Optional: refresh feeds automatically every day
 
