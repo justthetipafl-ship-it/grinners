@@ -24,3 +24,6 @@ create policy public_insert on clicks for insert with check (listing_id is not n
 
 update listings set attributes = attributes - 'vet_note' - 'starter'
 where status = 'published' and (attributes ? 'vet_note' or attributes ? 'starter');
+
+-- Image storage: images only, 2 MB at most.
+update storage.buckets set file_size_limit = 2097152, allowed_mime_types = array['image/*'] where id = 'images';
