@@ -31,7 +31,6 @@ export default function Page() {
         <li>We don&apos;t list creators who promote unlicensed betting services to Australians or who promise guaranteed profits.</li>
         <li>We don&apos;t carry bookmaker advertising.</li>
       </ul>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }

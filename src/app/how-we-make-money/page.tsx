@@ -22,7 +22,6 @@ export default function Page() {
       </p>
       <h2 className="mt-2 font-semibold text-fg">What we don&apos;t do</h2>
       <p>We are not a bookmaker, we don&apos;t take bets, and we don&apos;t carry bookmaker advertising or bookmaker affiliate links.</p>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }

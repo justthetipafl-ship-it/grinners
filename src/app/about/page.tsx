@@ -15,7 +15,6 @@ export default function Page() {
       <p>Through labelled affiliate links and sponsored placements. See <Link href="/how-we-make-money">how we make money</Link>.</p>
       <h2>Australian founded</h2>
       <p>Grinners is built in Queensland. Winners are Grinners.</p>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }

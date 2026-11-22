@@ -19,7 +19,6 @@ export default function Page() {
       <p>We don&apos;t sell personal information. Our hosting and database providers process it on our behalf.</p>
       <h2>Your choices</h2>
       <p>You can unsubscribe from the newsletter at any time, and you can ask us to delete your details.</p>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }

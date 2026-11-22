@@ -41,7 +41,6 @@ export default function Page() {
       </ul>
       <h2>Corrections</h2>
       <p>If something here is wrong, tell us through the <Link href="/submit">suggestion form</Link> and we&apos;ll fix it.</p>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }

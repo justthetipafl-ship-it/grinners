@@ -20,7 +20,6 @@ export default function Page() {
       <p>If you suggest a listing, you confirm the details are accurate and that you&apos;re allowed to share them.</p>
       <h2>Changes</h2>
       <p>We may update these terms. The current version is always on this page.</p>
-      <p className="text-sm">Draft wording. To be reviewed by a lawyer before launch.</p>
     </div>
   );
 }
