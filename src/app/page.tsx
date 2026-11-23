@@ -39,7 +39,7 @@ export default async function Home() {
     <>
       <section className="glow border-b border-line">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-          <p className="mb-4 text-sm font-medium text-grin">Tipsters · Tools · Podcasts · YouTube · Creators</p>
+          <p className="mb-4 text-sm font-medium text-grin">Tipsters · Tools · Podcasts · YouTube · Creators · Communities</p>
           <h1 className="display max-w-3xl text-5xl uppercase sm:text-7xl">
             Winners are <span className="text-grin">Grinners.</span>
           </h1>
@@ -60,10 +60,10 @@ export default async function Home() {
       </section>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-12">
-        <section aria-label="Browse by category" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <section aria-label="Browse by category" className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {(Object.keys(DIRECTORIES) as DirectoryKey[]).map((key) => (
-            <Link key={key} href={`/${key}`} className="rounded-card border border-line bg-surface p-4 transition-colors hover:bg-raised">
-              <p className="display text-lg">{DIRECTORIES[key].title}</p>
+            <Link key={key} href={`/${key}`} className="rounded-card border border-line bg-surface p-4 transition-colors hover:bg-raised lg:p-3 xl:p-4">
+              <p className="display text-lg lg:text-sm xl:text-base">{DIRECTORIES[key].title}</p>
               <p className="mt-1 font-mono text-xs text-muted">
                 {all.filter((l) => l.types.includes(DIRECTORIES[key].type)).length} listed
               </p>

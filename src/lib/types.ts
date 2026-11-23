@@ -1,4 +1,4 @@
-export type ListingType = "tipster" | "tool" | "podcast" | "youtube" | "creator" | "news";
+export type ListingType = "tipster" | "tool" | "podcast" | "youtube" | "creator" | "news" | "community";
 export type PricingModel = "free" | "paid" | "freemium";
 export type TipResult = "pending" | "won" | "lost" | "void";
 
@@ -97,6 +97,7 @@ export const DIRECTORIES = {
   youtube: { type: "youtube", title: "YouTube", blurb: "Channels breaking down the slate, the stats and the strategy." },
   creators: { type: "creator", title: "Creators", blurb: "Analysts, personalities and accounts that make sport smarter." },
   news: { type: "news", title: "News & Alerts", blurb: "Team news, injury updates and lineup alerts for sport and fantasy." },
+  communities: { type: "community", title: "Communities", blurb: "Discords, groups and forums where bettors and fantasy players talk it through." },
 } as const satisfies Record<string, { type: ListingType; title: string; blurb: string }>;
 
 export type DirectoryKey = keyof typeof DIRECTORIES;

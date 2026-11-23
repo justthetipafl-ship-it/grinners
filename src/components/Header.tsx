@@ -8,6 +8,7 @@ const NAV = [
   { href: "/youtube", label: "YouTube" },
   { href: "/creators", label: "Creators" },
   { href: "/news", label: "News" },
+  { href: "/communities", label: "Communities" },
   { href: "/articles", label: "Articles" },
   { href: "/tips", label: "Free Tips" },
 ];
@@ -19,9 +20,9 @@ export function Header() {
         <Link href="/" aria-label="Grinners home">
           <Logo />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="rounded-control px-3 py-2 text-sm text-muted transition-colors hover:bg-raised hover:text-fg">
+            <Link key={n.href} href={n.href} className="whitespace-nowrap rounded-control px-2.5 py-2 text-sm text-muted transition-colors hover:bg-raised hover:text-fg">
               {n.label}
             </Link>
           ))}
@@ -36,7 +37,7 @@ export function Header() {
         </div>
       </div>
       {/* On phones the sections sit in a swipeable row under the logo. */}
-      <nav aria-label="Sections" className="no-scrollbar flex gap-1 overflow-x-auto border-t border-line px-2 py-1.5 lg:hidden">
+      <nav aria-label="Sections" className="no-scrollbar flex gap-1 overflow-x-auto border-t border-line px-2 py-1.5 xl:hidden">
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className="shrink-0 rounded-control px-3 py-2 text-sm text-muted hover:bg-raised hover:text-fg">
             {n.label}

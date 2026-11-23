@@ -90,6 +90,7 @@ export function SuggestForm({
             <option value="youtube">YouTube channel</option>
             <option value="creator">Creator</option>
             <option value="news">News or alerts account</option>
+            <option value="community">Community (Discord, group or forum)</option>
           </select>
         </label>
         <label className={label}>

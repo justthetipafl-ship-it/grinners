@@ -12,6 +12,7 @@ const NOUN: Record<DirectoryKey, string> = {
   youtube: "YouTube channels",
   creators: "creators to follow",
   news: "news and alerts",
+  communities: "communities",
 };
 
 export type Landing = {

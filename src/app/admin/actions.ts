@@ -455,7 +455,7 @@ export async function reviewSubmission(form: FormData) {
   }
   const name = String(payload.name ?? "").trim();
   if (!name) redirect("/admin/submissions");
-  const allowed = ["tipster", "tool", "podcast", "youtube", "creator", "news"];
+  const allowed = ["tipster", "tool", "podcast", "youtube", "creator", "news", "community"];
   const type: string = allowed.includes(payload.type) ? payload.type : "creator";
 
   // Everything in a suggestion was typed by a member of the public. Each value is checked and trimmed here before it goes

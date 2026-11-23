@@ -17,6 +17,7 @@ const TYPE_LABEL = {
   youtube: "YouTube",
   creator: "Creator",
   news: "News & Alerts",
+  community: "Community",
 } as const;
 
 /** The mark for listings the Grinners team has checked and approves of: the Grinners badge with its name underneath. */

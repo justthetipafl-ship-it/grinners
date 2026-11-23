@@ -39,6 +39,18 @@ export const listings: Listing[] = [
     deal: { text: "First month half price for Grinners readers", code: "GRINNERS", expires: "2027-03-31", url: "https://example.com/grinners-deal", affiliate: true },
   },
   {
+    slug: "the-punters-lounge",
+    name: "The Punters Lounge",
+    types: ["community"],
+    tagline: "A sample Discord where AFL and NRL punters share research and bets.",
+    bio: "A sample community listing. Members post research, track bets together and talk through each round.",
+    initials: "PL",
+    sports: ["afl", "nrl"],
+    pricing: "free",
+    country: "AU",
+    links: [{ platform: "Discord", url: sample("discord/punterslounge") }],
+  },
+  {
     slug: "late-mail-alerts",
     name: "Late Mail Alerts",
     types: ["news"],

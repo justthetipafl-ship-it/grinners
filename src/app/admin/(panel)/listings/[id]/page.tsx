@@ -12,6 +12,7 @@ const TYPES = [
   ["youtube", "YouTube"],
   ["creator", "Creator"],
   ["news", "News & Alerts"],
+  ["community", "Community"],
 ] as const;
 
 const input = "h-11 w-full rounded-control border border-line bg-raised px-3";
