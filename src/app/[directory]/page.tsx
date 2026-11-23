@@ -1,3 +1,4 @@
+import { getLandings } from "@/lib/landing";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,12 +46,14 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
   if (!dir) notFound();
 
   const { sport, pricing, category, country, show, sort, page } = await searchParams;
-  const [matching, allSports, everything, popularIds] = await Promise.all([
+  const [matching, allSports, everything, popularIds, landings] = await Promise.all([
     getListings({ type: dir.type, sport, pricing: pricing as PricingModel | undefined, category }),
     getSports(),
     getListings({ type: dir.type }),
     getPopularIds(dir.type),
+    getLandings(),
   ]);
+  const related = landings.filter((l) => l.directory === directory);
   // Only categories that at least one listing here uses, so no filter leads to an empty page.
   const categories = [...new Set(everything.flatMap((l) => l.categories ?? []))].sort();
 
@@ -208,6 +211,20 @@ export default async function DirectoryPage({ params, searchParams }: Props) {
           ) : (
             <span className="flex h-11 items-center rounded-control border border-line px-4 text-sm text-muted opacity-50">Next →</span>
           )}
+        </nav>
+      )}
+      {related.length > 0 && (
+        <nav aria-label={`${dir.title} by sport and category`} className="mt-12">
+          <h2 className="mb-3 font-semibold">Browse {dir.title.toLowerCase()} by sport{directory === "tools" ? " or category" : ""}</h2>
+          <ul className="flex flex-wrap gap-2">
+            {related.map((l) => (
+              <li key={l.path}>
+                <Link href={l.path} className="flex h-10 items-center rounded-full border border-line px-4 text-sm text-muted hover:border-muted/60 hover:text-fg">
+                  {l.heading}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
       )}
       {listings.length ? null : (

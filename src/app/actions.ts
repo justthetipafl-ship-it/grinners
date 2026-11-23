@@ -67,14 +67,28 @@ export async function suggestListing(_previous: FormState, form: FormData): Prom
   // Empty answers are left out so the stored suggestion stays small.
   const filled = Object.fromEntries(Object.entries(details).filter(([, value]) => (Array.isArray(value) ? value.length : value)));
 
+  // An owner updating an existing listing: filed as a report so approving it never creates a second listing.
+  const updateSlug = text(form, "update_slug", 80);
+  const isUpdate = /^[a-z0-9-]{1,80}$/.test(updateSlug);
+
   const { error } = await publicClient()
     .from("submissions")
     .insert({
-      kind: "listing",
+      kind: isUpdate ? "report" : "listing",
       contact_email: email || null,
-      payload: { name, url, type: text(form, "type", 20), sports: text(form, "sports", 120), why: text(form, "why", 1000), is_owner: isOwner, ...filled },
+      payload: {
+        ...(isUpdate ? { request: "update", listing_slug: updateSlug } : {}),
+        name,
+        url,
+        type: text(form, "type", 20),
+        sports: text(form, "sports", 120),
+        why: text(form, "why", 1000),
+        is_owner: isOwner,
+        ...filled,
+      },
     });
   if (error) return { ok: false, message: "Something went wrong. If you wrote a lot, try shortening it, then send again." };
+  if (isUpdate) return { ok: true, message: "Thanks. We'll check the changes and update your listing." };
   return done;
 }
 
@@ -102,4 +116,12 @@ export async function requestSpotlight(_previous: FormState, form: FormData): Pr
     });
   if (error) return { ok: false, message: "Something went wrong. Please try again." };
   return done;
+}
+
+/** Counts one save for a listing. Nothing about the visitor is stored. Fails quietly: saving still works on their device. */
+export async function recordSave(slug: string): Promise<void> {
+  if (!isConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return;
+  const supabase = publicClient();
+  const { data } = await supabase.from("listings").select("id").eq("status", "published").eq("slug", slug).maybeSingle();
+  if (data?.id) await supabase.from("saves").insert({ listing_id: data.id });
 }

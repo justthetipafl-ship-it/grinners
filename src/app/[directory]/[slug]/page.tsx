@@ -1,3 +1,4 @@
+import { SaveButton } from "@/components/SaveButton";
 import { Flag } from "@/components/Flag";
 import { countryName } from "@/lib/countries";
 import type { Metadata } from "next";
@@ -226,9 +227,17 @@ export default async function ListingPage({ params }: Props) {
           <a href={shareUrl} target="_blank" rel="noopener" className="flex h-10 items-center justify-center rounded-control border border-line text-sm text-muted hover:text-fg">
             Share to X
           </a>
-          <Link href={`/listed/${slug}`} className="text-center text-xs text-muted underline-offset-4 hover:text-fg hover:underline">
-            Is this you? Get a badge for your site
-          </Link>
+          <SaveButton slug={slug} name={listing.name} />
+          <p className="text-center text-xs text-muted">
+            Run this?{" "}
+            <Link href={`/submit?update=${slug}`} className="underline underline-offset-4 hover:text-fg">
+              Update your listing
+            </Link>{" "}
+            ·{" "}
+            <Link href={`/listed/${slug}`} className="underline underline-offset-4 hover:text-fg">
+              Get a badge
+            </Link>
+          </p>
         </aside>
       </div>
 

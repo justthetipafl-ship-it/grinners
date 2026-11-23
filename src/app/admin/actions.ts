@@ -446,6 +446,12 @@ export async function reviewSubmission(form: FormData) {
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload = (submission?.payload ?? {}) as any;
+  // An owner's update: open the listing it's about. Nothing is changed automatically.
+  if (payload.request === "update") {
+    const target = await supabase.from("listings").select("id").eq("slug", String(payload.listing_slug ?? "")).maybeSingle();
+    await supabase.from("submissions").update({ status: "approved" }).eq("id", id);
+    redirect(target.data?.id ? `/admin/listings/${target.data.id}` : "/admin/submissions");
+  }
   const name = String(payload.name ?? "").trim();
   if (!name) redirect("/admin/submissions");
   const allowed = ["tipster", "tool", "podcast", "youtube", "creator", "news"];

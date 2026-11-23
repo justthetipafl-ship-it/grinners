@@ -26,9 +26,14 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <Link href="/search" className="rounded-control border border-line px-3 py-2 text-sm text-muted hover:text-fg">
-          Search
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/saved" className="rounded-control px-3 py-2 text-sm text-muted hover:text-fg">
+            Saved
+          </Link>
+          <Link href="/search" className="rounded-control border border-line px-3 py-2 text-sm text-muted hover:text-fg">
+            Search
+          </Link>
+        </div>
       </div>
       {/* On phones the sections sit in a swipeable row under the logo. */}
       <nav aria-label="Sections" className="no-scrollbar flex gap-1 overflow-x-auto border-t border-line px-2 py-1.5 lg:hidden">

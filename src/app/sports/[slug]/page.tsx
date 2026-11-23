@@ -1,3 +1,4 @@
+import { getLandings } from "@/lib/landing";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,7 +28,8 @@ export default async function SportHub({ params }: Props) {
   const sport = sports.find((s) => s.slug === slug);
   if (!sport) notFound();
 
-  const [listings, tips] = await Promise.all([getListings({ sport: slug }), getTips({ sport: slug })]);
+  const [listings, tips, landings] = await Promise.all([getListings({ sport: slug }), getTips({ sport: slug }), getLandings()]);
+  const landingPaths = new Set(landings.map((l) => l.path));
   const bySlug = new Map(listings.map((l) => [l.slug, l]));
 
   return (
@@ -64,7 +66,7 @@ export default async function SportHub({ params }: Props) {
         if (!group.length) return null;
         return (
           <section key={key}>
-            <SectionHeading title={DIRECTORIES[key].title} href={`/${key}?sport=${slug}`} />
+            <SectionHeading title={DIRECTORIES[key].title} href={landingPaths.has(`/${key}/for/${slug}`) ? `/${key}/for/${slug}` : `/${key}?sport=${slug}`} />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.map((l) => (
                 <ListingCard key={l.slug} listing={l} />
