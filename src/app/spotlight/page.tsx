@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DisclosureBadge, Monogram, listingHref } from "@/components/Cards";
+import { DisclosureBadge, Monogram } from "@/components/Cards";
 import { getListings, getSpotlights } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default async function SpotlightsPage() {
           return (
             <li key={`${s.listingSlug}-${s.startsOn ?? i}`}>
               <Link
-                href={listingHref(listing)}
+                href={`/spotlight/${listing.slug}`}
                 className={`flex flex-col gap-4 rounded-card border bg-surface p-5 transition-colors hover:bg-raised sm:flex-row sm:items-center ${i === 0 ? "glow border-spotlight/40" : "border-line"}`}
               >
                 <Monogram listing={listing} size="lg" />
@@ -42,7 +42,7 @@ export default async function SpotlightsPage() {
                     {s.isSponsored && <DisclosureBadge kind="Sponsored" />}
                   </p>
                   <h2 className="display mt-1 text-2xl">{s.headline}</h2>
-                  <p className="mt-1 text-muted">{s.body}</p>
+                  <p className="mt-1 line-clamp-2 text-muted">{s.body.split("\n")[0]}</p>
                 </div>
               </Link>
             </li>

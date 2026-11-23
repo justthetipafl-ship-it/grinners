@@ -33,6 +33,7 @@ export default async function Home() {
   const freshTools = tools.filter((l) => !shownAbove.has(l.slug));
   const toolsRow = popularTools ?? (freshTools.length >= 3 ? freshTools : tools).slice(0, 3);
   const spotlightListing = spotlight ? await getListing(spotlight.listingSlug) : undefined;
+  const spotlightImage = spotlightListing?.coverUrl ?? spotlightListing?.gallery?.[0];
   const bySlug = new Map(all.map((l) => [l.slug, l]));
 
   return (
@@ -73,22 +74,42 @@ export default async function Home() {
 
         {spotlight && spotlightListing && (
           <section aria-label="Spotlight" className="glow overflow-hidden rounded-card border border-spotlight/40 bg-surface">
-            <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:p-8">
-              <Monogram listing={spotlightListing} size="lg" />
-              <div className="flex-1">
-                <p className="flex items-center gap-2 text-sm font-semibold text-spotlight">
-                  {spotlight.kind}
-                  {spotlight.isSponsored && <DisclosureBadge kind="Sponsored" />}
-                </p>
-                <h2 className="display mt-1 text-3xl">{spotlight.headline}</h2>
-                <p className="mt-2 max-w-2xl text-muted">{spotlight.body}</p>
+            <div className={`grid ${spotlightImage ? "lg:grid-cols-[1fr_minmax(0,26rem)]" : ""}`}>
+              <div className="flex flex-col gap-5 p-6 sm:p-8">
+                <div className="flex items-center gap-4">
+                  <Monogram listing={spotlightListing} size="lg" />
+                  <div>
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-spotlight">
+                      {spotlight.kind}
+                      {spotlight.isSponsored && <DisclosureBadge kind="Sponsored" />}
+                    </p>
+                    <p className="font-semibold">{spotlightListing.name}</p>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="display text-3xl">{spotlight.headline}</h2>
+                  <p className="mt-2 line-clamp-3 max-w-2xl whitespace-pre-line text-muted">{spotlight.body.split("\n")[0]}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+                  <Link href={`/spotlight/${spotlightListing.slug}`} className="flex h-11 items-center justify-center rounded-control bg-fg px-5 font-semibold text-ink hover:brightness-90">
+                    Read the spotlight
+                  </Link>
+                  <Link href={listingHref(spotlightListing)} className="flex h-11 items-center justify-center rounded-control border border-line bg-raised px-5 font-semibold hover:border-muted/60">
+                    View profile
+                  </Link>
+                  <Link href="/spotlight" className="text-sm text-muted hover:text-fg">
+                    Past spotlights →
+                  </Link>
+                </div>
               </div>
-              <Link href={listingHref(spotlightListing)} className="flex h-11 shrink-0 items-center justify-center rounded-control border border-line bg-raised px-5 font-semibold hover:border-muted/60">
-                View profile
-              </Link>
-              <Link href="/spotlight" className="shrink-0 text-sm text-muted hover:text-fg">
-                Past spotlights →
-              </Link>
+              {spotlightImage && (
+                <Link href={`/spotlight/${spotlightListing.slug}`} aria-label={`Read the spotlight on ${spotlightListing.name}`} className="relative block min-h-52 overflow-hidden border-t border-line bg-raised lg:border-l lg:border-t-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={spotlightImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={spotlightImage} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                </Link>
+              )}
             </div>
           </section>
         )}

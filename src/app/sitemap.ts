@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listingHref } from "@/components/Cards";
-import { getArticles, getListings, getSports } from "@/lib/data";
+import { getArticles, getListings, getSpotlights, getSports } from "@/lib/data";
 import { getLandings } from "@/lib/landing";
 import { SITE_URL } from "@/lib/site";
 import { DIRECTORIES } from "@/lib/types";
@@ -8,7 +8,7 @@ import { DIRECTORIES } from "@/lib/types";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [listings, articles, sports, landings] = await Promise.all([getListings(), getArticles(), getSports(), getLandings()]);
+  const [listings, articles, sports, landings, spotlights] = await Promise.all([getListings(), getArticles(), getSports(), getLandings(), getSpotlights()]);
   const paths = [
     "",
     ...Object.keys(DIRECTORIES).map((d) => `/${d}`),
@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/submit",
     ...sports.map((s) => `/sports/${s.slug}`),
     ...landings.map((l) => l.path),
+    ...[...new Set(spotlights.map((sp) => sp.listingSlug))].filter((slug) => listings.some((l) => l.slug === slug)).map((slug) => `/spotlight/${slug}`),
     ...listings.map(listingHref),
     ...articles.map((a) => `/articles/${a.slug}`),
   ];

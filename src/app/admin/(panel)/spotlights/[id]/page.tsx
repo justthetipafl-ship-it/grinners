@@ -58,9 +58,16 @@ export default async function EditSpotlight({ params, searchParams }: Props) {
         <Field label="Headline">
           <input name="headline" required defaultValue={s.headline ?? ""} className={input} />
         </Field>
-        <Field label="Why they're featured" hint="Two or three sentences.">
-          <textarea name="body" rows={3} defaultValue={s.body ?? ""} className={area} />
+        <Field
+          label="The write-up"
+          hint="The first paragraph shows on the homepage. Write as many paragraphs as you like for the spotlight's own page: leave a blank line between them."
+        >
+          <textarea name="body" rows={10} defaultValue={s.body ?? ""} className={area} />
         </Field>
+        <p className="rounded-control border border-line bg-raised p-3 text-sm text-muted">
+          Pictures come from the listing itself. The spotlight shows the listing&apos;s preview image first, then its gallery (up to 8 images). To add or
+          change them, edit the listing.
+        </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Starts">
             <input name="starts_on" type="date" required defaultValue={s.starts_on ?? ""} className={input} />
