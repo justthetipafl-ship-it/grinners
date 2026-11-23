@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { requestSpotlight, subscribe, suggestListing, type FormState } from "@/app/actions";
 
 const input = "h-12 w-full rounded-control border border-line bg-raised px-4 placeholder:text-muted";
+const area = "w-full rounded-control border border-line bg-raised px-4 py-3";
 
 function Message({ state }: { state: FormState }) {
   if (!state) return null;
@@ -40,7 +41,8 @@ export function NewsletterForm({ source = "home" }: { source?: string }) {
   );
 }
 
-export function SuggestForm({ owner = false }: { owner?: boolean }) {
+/** `countries` comes from the server so the names in the list are identical on the server and in the browser. */
+export function SuggestForm({ owner = false, countries = [] }: { owner?: boolean; countries?: { code: string; name: string }[] }) {
   const [state, action, pending] = useActionState(suggestListing, null);
   if (state?.ok) {
     return (
@@ -77,10 +79,85 @@ export function SuggestForm({ owner = false }: { owner?: boolean }) {
           <input name="sports" placeholder="AFL, NBA" maxLength={120} className={input} />
         </label>
       </div>
-      <label className={label}>
-        {owner ? "Tell us about it" : "Why should they be on Grinners?"} <span className="font-normal text-muted">Optional</span>
-        <textarea name="why" rows={3} maxLength={1000} className="w-full rounded-control border border-line bg-raised px-4 py-3" />
-      </label>
+      {owner ? (
+        <>
+          <p className="mt-2 border-t border-line pt-5 text-sm text-muted">
+            Everything below is optional, but the more you fill in, the faster your listing goes up and the better it looks.
+          </p>
+          <label className={label}>
+            One-line description <span className="font-normal text-muted">What it is and who it&apos;s for.</span>
+            <input name="tagline" maxLength={140} className={input} />
+          </label>
+          <label className={label}>
+            About <span className="font-normal text-muted">A few sentences. Plain facts work best: we remove hype and unproven win claims.</span>
+            <textarea name="bio" rows={4} maxLength={1200} className={area} />
+          </label>
+          <label className={label}>
+            Key features or what people get <span className="font-normal text-muted">One per line, up to 8.</span>
+            <textarea name="features" rows={4} maxLength={900} className={area} />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={label}>
+              Where you&apos;re based
+              <select name="country" className={input} defaultValue="">
+                <option value="">Prefer not to say</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={label}>
+              Pricing
+              <select name="pricing" className={input} defaultValue="">
+                <option value="">Choose one</option>
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
+                <option value="freemium">Free and paid</option>
+              </select>
+            </label>
+          </div>
+          <label className={label}>
+            Pricing note <span className="font-normal text-muted">For example: from $10 a month, 7-day free trial.</span>
+            <input name="pricing_note" maxLength={120} className={input} />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={label}>
+              X profile
+              <input name="x_url" type="url" placeholder="https://x.com/" className={input} />
+            </label>
+            <label className={label}>
+              YouTube channel
+              <input name="youtube_url" type="url" placeholder="https://youtube.com/@" className={input} />
+            </label>
+          </div>
+          <label className={label}>
+            Podcast link or RSS feed <span className="font-normal text-muted">So your latest episodes show automatically.</span>
+            <input name="podcast_url" type="url" placeholder="https://" className={input} />
+          </label>
+          <label className={label}>
+            Other links <span className="font-normal text-muted">Discord, Instagram, newsletter and so on. One per line, up to 5.</span>
+            <textarea name="other_links" rows={3} maxLength={700} className={area} />
+          </label>
+          <label className={label}>
+            Anything else we should know?
+            <textarea name="why" rows={3} maxLength={1000} className={area} />
+          </label>
+          <label className="flex min-h-10 items-start gap-2 text-sm">
+            <input type="checkbox" name="sponsored_interest" className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-grin)]" />
+            <span>
+              I&apos;m interested in a paid spotlight <span className="text-muted">(always labelled &ldquo;Sponsored&rdquo;; listings themselves stay free)</span>
+            </span>
+          </label>
+          <p className="text-sm text-muted">We&apos;ll email you for a logo and images once you&apos;re approved.</p>
+        </>
+      ) : (
+        <label className={label}>
+          Why should they be on Grinners? <span className="font-normal text-muted">Optional</span>
+          <textarea name="why" rows={3} maxLength={1000} className={area} />
+        </label>
+      )}
       <label className={label}>
         Your email{" "}
         <span className="font-normal text-muted">

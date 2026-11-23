@@ -1,11 +1,13 @@
 "use server";
 
+import { COUNTRIES } from "@/lib/countries";
 import { isConfigured, publicClient } from "@/lib/supabase";
 
 export type FormState = { ok: boolean; message: string } | null;
 
 const text = (form: FormData, name: string, max = 500) => String(form.get(name) ?? "").trim().slice(0, max);
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const WEB = /^https?:\/\/\S+\.\S+$/i;
 const NOT_READY: FormState = { ok: false, message: "This isn't switched on yet. Please try again soon." };
 
 export async function subscribe(_previous: FormState, form: FormData): Promise<FormState> {
@@ -33,14 +35,46 @@ export async function suggestListing(_previous: FormState, form: FormData): Prom
   const isOwner = form.get("is_owner") === "on";
   if (isOwner && !email) return { ok: false, message: "Add your email so we can confirm it's you and tell you when you're listed." };
 
+  // The optional details below are used to start the listing draft, so the admin has less to type.
+  const link = (name: string) => {
+    const value = text(form, name, 300);
+    return WEB.test(value) ? value : "";
+  };
+  const typed = ["x_url", "youtube_url", "podcast_url"].filter((field) => text(form, field) && !link(field));
+  if (typed.length) return { ok: false, message: "One of the links isn't a full web address. Each needs to start with https://" };
+  const country = text(form, "country", 8);
+  const pricing = text(form, "pricing", 12);
+  const details = {
+    tagline: text(form, "tagline", 140),
+    bio: text(form, "bio", 1200),
+    features: text(form, "features", 900)
+      .split("\n")
+      .map((line) => line.replace(/^[-•*\s]+/, "").trim().slice(0, 120))
+      .filter(Boolean)
+      .slice(0, 8),
+    country: COUNTRIES.some((c) => c.code === country) ? country : "",
+    pricing: ["free", "paid", "freemium"].includes(pricing) ? pricing : "",
+    pricing_note: text(form, "pricing_note", 120),
+    x_url: link("x_url"),
+    youtube_url: link("youtube_url"),
+    podcast_url: link("podcast_url"),
+    other_links: text(form, "other_links", 700)
+      .split(/\s+/)
+      .filter((value) => WEB.test(value))
+      .slice(0, 5),
+    sponsored_interest: form.get("sponsored_interest") === "on",
+  };
+  // Empty answers are left out so the stored suggestion stays small.
+  const filled = Object.fromEntries(Object.entries(details).filter(([, value]) => (Array.isArray(value) ? value.length : value)));
+
   const { error } = await publicClient()
     .from("submissions")
     .insert({
       kind: "listing",
       contact_email: email || null,
-      payload: { name, url, type: text(form, "type", 20), sports: text(form, "sports", 120), why: text(form, "why", 1000), is_owner: isOwner },
+      payload: { name, url, type: text(form, "type", 20), sports: text(form, "sports", 120), why: text(form, "why", 1000), is_owner: isOwner, ...filled },
     });
-  if (error) return { ok: false, message: "Something went wrong. Please try again." };
+  if (error) return { ok: false, message: "Something went wrong. If you wrote a lot, try shortening it, then send again." };
   return done;
 }
 

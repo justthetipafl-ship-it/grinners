@@ -449,19 +449,82 @@ export async function reviewSubmission(form: FormData) {
   const name = String(payload.name ?? "").trim();
   if (!name) redirect("/admin/submissions");
   const allowed = ["tipster", "tool", "podcast", "youtube", "creator", "news"];
+  const type: string = allowed.includes(payload.type) ? payload.type : "creator";
+
+  // Everything in a suggestion was typed by a member of the public. Each value is checked and trimmed here before it goes
+  // into the draft, and links are only kept when they are plain web addresses.
+  const str = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+  const web = (value: unknown) => (typeof value === "string" && /^https?:\/\/\S+\.\S+$/i.test(value.trim()) ? value.trim().slice(0, 500) : "");
+  const website = web(payload.url);
+
+  // Sports: match what they typed ("AFL, NBA") against the sports that exist.
+  const { data: knownSports } = await supabase.from("sports").select("slug, name");
+  const wanted = str(payload.sports, 200)
+    .split(/[,/&;]|\band\b/i)
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  const sports = (knownSports ?? []).filter((s) => wanted.includes(s.slug.toLowerCase()) || wanted.includes(s.name.toLowerCase())).map((s) => s.slug);
+
+  const youtube = web(payload.youtube_url);
+  const podcast = web(payload.podcast_url);
+  const attributes: Record<string, unknown> = {
+    vet_note: [
+      payload.is_owner ? "From an application by someone who says they run it." : "From a public suggestion.",
+      "The description and features are their own words: check every claim and remove hype before publishing.",
+      payload.sponsored_interest ? "They ticked that they're interested in a paid spotlight." : "",
+      "Their contact email is on the suggestion.",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  };
+  if (COUNTRIES.some((c) => c.code === payload.country)) attributes.country = payload.country;
+  const feed = type === "podcast" ? podcast || youtube : youtube || podcast;
+  if (feed) attributes.feed_url = feed;
+
   const created = await supabase
     .from("listings")
     .insert({
       name,
       slug: `${slugify(name)}-${id.slice(0, 4)}`,
-      types: [allowed.includes(payload.type) ? payload.type : "creator"],
-      // Suggestions come from the public, so the link is only kept when it is a plain web address.
-      website_url: typeof payload.url === "string" && /^https?:\/\/\S+$/i.test(payload.url) ? payload.url.slice(0, 500) : null,
+      types: [type],
+      tagline: str(payload.tagline, 160),
+      bio: str(payload.bio, 1500),
+      features: Array.isArray(payload.features) ? payload.features.map((f: unknown) => str(f, 120)).filter(Boolean).slice(0, 8) : [],
+      sports,
+      ...(["free", "paid", "freemium"].includes(payload.pricing) ? { pricing: payload.pricing } : {}),
+      pricing_note: str(payload.pricing_note, 120) || null,
+      website_url: website || null,
+      attributes,
       status: "draft",
     })
     .select("id")
     .single();
   if (created.error || !created.data) redirect(`/admin/submissions?error=${encodeURIComponent(created.error?.message ?? "Couldn't create the draft.")}`);
+
+  // Their links, named by where they point.
+  const platformOf = (address: string) => {
+    const host = new URL(address).hostname.replace(/^www\./, "");
+    if (/(^|\.)x\.com$|(^|\.)twitter\.com$/.test(host)) return "X";
+    if (/youtube\.com$|youtu\.be$/.test(host)) return "YouTube";
+    if (/spotify\.com$/.test(host)) return "Spotify";
+    if (/podcasts\.apple\.com$/.test(host)) return "Apple Podcasts";
+    if (/instagram\.com$/.test(host)) return "Instagram";
+    if (/tiktok\.com$/.test(host)) return "TikTok";
+    if (/discord\.(gg|com)$/.test(host)) return "Discord";
+    if (/^t\.me$|telegram\.(me|org)$/.test(host)) return "Telegram";
+    if (/facebook\.com$/.test(host)) return "Facebook";
+    if (/twitch\.tv$/.test(host)) return "Twitch";
+    if (/substack\.com$/.test(host)) return "Substack";
+    if (/patreon\.com$/.test(host)) return "Patreon";
+    return "Website";
+  };
+  const others = Array.isArray(payload.other_links) ? payload.other_links.map(web).filter(Boolean).slice(0, 5) : [];
+  const addresses = [...new Set([website, web(payload.x_url), youtube, podcast, ...others].filter(Boolean))];
+  if (addresses.length) {
+    await supabase
+      .from("listing_links")
+      .insert(addresses.map((url, index) => ({ listing_id: created.data!.id, platform: platformOf(url), url, sort_order: index })));
+  }
   await supabase.from("submissions").update({ status: "approved" }).eq("id", id);
   redirect(`/admin/listings/${created.data!.id}`);
 }

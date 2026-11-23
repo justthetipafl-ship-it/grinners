@@ -19,7 +19,8 @@ export default async function AdminSubmissions({ searchParams }: { searchParams:
       <h1 className="display text-3xl uppercase">Suggestions</h1>
       <Notices error={error ?? loadError?.message} />
       <p className="text-sm text-muted">
-        Approving a listing request starts a draft listing and opens it, so you can fill in the rest and vet it before publishing. Accepting a
+        Approving a listing request starts a draft listing filled in with everything they gave (description, features, sports, country, pricing
+        and links) and opens it, so you can check it and vet it before publishing. Accepting a
         spotlight request only marks it accepted: reply to them by email, then write the spotlight under Spotlights.
         Treat every link here as unchecked.
       </p>
@@ -46,11 +47,31 @@ export default async function AdminSubmissions({ searchParams }: { searchParams:
                 </span>
               </div>
               {s.payload?.sports && <p className="mt-2 text-muted">Sports: {String(s.payload.sports)}</p>}
+              {s.payload?.tagline && <p className="mt-2 font-medium">{String(s.payload.tagline)}</p>}
+              {s.payload?.bio && <p className="mt-2 whitespace-pre-line text-muted">{String(s.payload.bio)}</p>}
+              {Array.isArray(s.payload?.features) && s.payload.features.length > 0 && (
+                <p className="mt-2 text-muted">Features: {s.payload.features.map(String).join(" · ")}</p>
+              )}
+              {(s.payload?.country || s.payload?.pricing || s.payload?.pricing_note) && (
+                <p className="mt-2 text-muted">
+                  {[s.payload?.country && `Based in ${String(s.payload.country)}`, s.payload?.pricing && `Pricing: ${String(s.payload.pricing)}`, s.payload?.pricing_note && String(s.payload.pricing_note)]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
+              {[s.payload?.x_url, s.payload?.youtube_url, s.payload?.podcast_url, ...(Array.isArray(s.payload?.other_links) ? s.payload.other_links : [])].filter(Boolean).length > 0 && (
+                <p className="mt-2 break-all font-mono text-xs text-muted">
+                  {[s.payload?.x_url, s.payload?.youtube_url, s.payload?.podcast_url, ...(Array.isArray(s.payload?.other_links) ? s.payload.other_links : [])]
+                    .filter(Boolean)
+                    .map(String)
+                    .join("  ·  ")}
+                </p>
+              )}
               {s.payload?.why && <p className="mt-2">{String(s.payload.why)}</p>}
               {s.payload?.pitch && <p className="mt-2 whitespace-pre-line">{String(s.payload.pitch)}</p>}
               <p className="mt-2 text-xs text-muted">
                 {s.payload?.is_owner ? "Says they run it. " : ""}
-                {s.payload?.sponsored_interest ? "Open to a paid, labelled spotlight. " : ""}
+                {s.payload?.sponsored_interest ? "Interested in a paid, labelled spotlight. " : ""}
                 {s.contact_email ? `Contact: ${s.contact_email}` : "No contact email."}
               </p>
               {s.status === "new" && (

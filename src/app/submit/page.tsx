@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SuggestForm } from "@/components/PublicForms";
+import { COUNTRIES } from "@/lib/countries";
 
 export const metadata: Metadata = {
   title: "Get listed",
@@ -28,7 +29,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Promi
         </Link>
       </div>
       <div className="mt-6">
-        <SuggestForm key={owner ? "owner" : "someone"} owner={owner} />
+        <SuggestForm key={owner ? "owner" : "someone"} owner={owner} countries={COUNTRIES} />
       </div>
       <p className="mt-8 text-sm text-muted">
         Already listed and have a story to tell?{" "}
