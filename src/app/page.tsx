@@ -44,7 +44,7 @@ export default async function Home() {
             Winners are <span className="text-grin">Grinners.</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted">
-            The home of sports betting and fantasy content. Find the people, tools and shows worth following across Australian and US sport.
+            The home of sports betting and fantasy content. Find the people, tools and shows worth following, for every sport and from anywhere in the world.
           </p>
           <div className="mt-8">
             <SearchForm large />

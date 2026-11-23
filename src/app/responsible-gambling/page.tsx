@@ -24,6 +24,29 @@ export default function Page() {
           <a className="text-fg underline" href="https://www.betstop.gov.au" target="_blank" rel="noopener noreferrer">BetStop</a>.
         </li>
       </ul>
+      <h2 id="international" className="mt-2 scroll-mt-24 font-semibold text-fg">Outside Australia</h2>
+      <ul className="list-disc space-y-2 pl-5">
+        <li>
+          United States: call or text <a className="text-fg underline" href="tel:18004262537">1-800-GAMBLER</a>, the National Problem Gambling Helpline.
+        </li>
+        <li>
+          United Kingdom: call the National Gambling Helpline on <a className="text-fg underline" href="tel:08088020133">0808 8020 133</a>, free, 24 hours a day.
+        </li>
+        <li>
+          New Zealand: call the Gambling Helpline on <a className="text-fg underline" href="tel:0800654655">0800 654 655</a>.
+        </li>
+        <li>
+          Ireland: call the National Gambling Helpline on <a className="text-fg underline" href="tel:1800753753">1800 753 753</a>.
+        </li>
+        <li>
+          Anywhere else: GamCare keeps a{" "}
+          <a className="text-fg underline" href="https://gamcare.org.uk/self-help/links-to-other-support-agencies/international-support-contacts/" target="_blank" rel="noopener noreferrer">
+            list of support services by country
+          </a>
+          .
+        </li>
+      </ul>
+      <p>The legal age for betting differs by country and, in the US, by state. Follow the rules where you live.</p>
       <h2 className="mt-2 font-semibold text-fg">Our standards</h2>
       <ul className="list-disc space-y-2 pl-5">
         <li>Tips are opinions, not advice. Past results do not predict future results.</li>

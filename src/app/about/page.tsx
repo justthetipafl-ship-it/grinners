@@ -7,7 +7,7 @@ export default function Page() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10 text-muted [&_h2]:mt-3 [&_h2]:font-semibold [&_h2]:text-fg [&_li]:ml-5 [&_li]:list-disc [&_a]:text-fg [&_a]:underline">
       <h1 className="display text-4xl uppercase text-fg">About Grinners</h1>
-      <p>Grinners is a directory for the sports betting and fantasy community. We bring tipsters, creators, tools, podcasts and YouTube channels together in one place so they are easier to find, across Australian and US sport.</p>
+      <p>Grinners is a directory for the sports betting and fantasy community. We bring tipsters, creators, tools, podcasts and YouTube channels together in one place so they are easier to find, for every sport and from anywhere in the world.</p>
       <p>We are not a bookmaker. We don&apos;t take bets, and we don&apos;t carry bookmaker advertising.</p>
       <h2>How listings work</h2>
       <p>Listings are free. We check each one before it goes live. Anyone can <Link href="/submit">suggest a listing</Link>.</p>

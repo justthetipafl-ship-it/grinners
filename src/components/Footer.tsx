@@ -12,6 +12,11 @@ export function ResponsibleGamblingStrip() {
           <a className="text-fg underline" href="https://www.gamblinghelponline.org.au" rel="noopener noreferrer" target="_blank">gamblinghelponline.org.au</a>.
           {" "}Self-exclude at{" "}
           <a className="text-fg underline" href="https://www.betstop.gov.au" rel="noopener noreferrer" target="_blank">BetStop</a>.
+          {" "}Outside Australia?{" "}
+          <Link className="text-fg underline" href="/responsible-gambling#international">
+            Find support in your country
+          </Link>
+          .
         </p>
       </div>
     </aside>
