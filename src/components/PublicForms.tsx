@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { FEATURE_GROUPS, STANDARD_FEATURES } from "@/lib/features";
 import { requestSpotlight, subscribe, suggestListing, type FormState } from "@/app/actions";
 
 const input = "h-12 w-full rounded-control border border-line bg-raised px-4 placeholder:text-muted";
@@ -59,6 +60,8 @@ export function SuggestForm({
   updateOf?: string;
 }) {
   const [state, action, pending] = useActionState(suggestListing, null);
+  // Features the listing already has, when this is an update.
+  const had = (initial.features ?? "").split("\n").filter(Boolean);
   if (state?.ok) {
     return (
       <div className="rounded-card border border-grin/40 bg-grin/10 p-5">
@@ -109,9 +112,27 @@ export function SuggestForm({
             About <span className="font-normal text-muted">A few sentences. Plain facts work best: we remove hype and unproven win claims.</span>
             <textarea name="bio" rows={4} maxLength={1200} defaultValue={initial.bio} className={area} />
           </label>
+          <fieldset className="flex flex-col gap-3">
+            <legend className="text-sm font-medium">
+              Features <span className="font-normal text-muted">Tick everything that applies.</span>
+            </legend>
+            {FEATURE_GROUPS.map((group) => (
+              <div key={group.title}>
+                <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-muted">{group.title}</p>
+                <div className="grid gap-x-4 sm:grid-cols-2">
+                  {group.options.map((option) => (
+                    <label key={option} className="flex min-h-9 items-center gap-2 text-sm">
+                      <input type="checkbox" name="feature_options" value={option} defaultChecked={had.includes(option)} className="h-4 w-4 shrink-0 accent-[var(--color-grin)]" />
+                      {option}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </fieldset>
           <label className={label}>
-            Key features or what people get <span className="font-normal text-muted">One per line, up to 8.</span>
-            <textarea name="features" rows={4} maxLength={900} defaultValue={initial.features} className={area} />
+            Other features <span className="font-normal text-muted">Anything not listed above. One per line.</span>
+            <textarea name="features" rows={3} maxLength={900} defaultValue={had.filter((f) => !STANDARD_FEATURES.includes(f)).join("\n")} className={area} />
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className={label}>

@@ -1,6 +1,7 @@
 "use server";
 
 import { COUNTRIES } from "@/lib/countries";
+import { combineFeatures } from "@/lib/features";
 import { isConfigured, publicClient } from "@/lib/supabase";
 
 export type FormState = { ok: boolean; message: string } | null;
@@ -47,11 +48,13 @@ export async function suggestListing(_previous: FormState, form: FormData): Prom
   const details = {
     tagline: text(form, "tagline", 140),
     bio: text(form, "bio", 1200),
-    features: text(form, "features", 900)
-      .split("\n")
-      .map((line) => line.replace(/^[-•*\s]+/, "").trim().slice(0, 120))
-      .filter(Boolean)
-      .slice(0, 8),
+    features: combineFeatures(
+      form.getAll("feature_options").map(String),
+      text(form, "features", 900)
+        .split("\n")
+        .map((line) => line.replace(/^[-•*\s]+/, "")),
+      16,
+    ),
     country: COUNTRIES.some((c) => c.code === country) ? country : "",
     pricing: ["free", "paid", "freemium"].includes(pricing) ? pricing : "",
     pricing_note: text(form, "pricing_note", 120),

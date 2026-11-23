@@ -42,6 +42,7 @@ Run these in Supabase's SQL Editor, once each, in order:
 - `supabase/migrations/0004_news_directory.sql`: adds the News & Alerts listing type. Until it's run, the News page is empty and saving a listing ticked as News & Alerts fails.
 - `supabase/migrations/0005_hardening.sql`: size limits on public forms and click rows, and removes internal checking notes from published listings.
 - `supabase/migrations/0006_saves.sql`: counts how often each listing is saved. Until it's run, Save still works for visitors but the count in Admin > Numbers stays at zero.
+- `supabase/migrations/0007_tool_categories.sql`: merges the two duplicate stats categories, renames three and adds six new tool categories, moving every listing to the new names.
 
 ### Optional: refresh feeds automatically every day
 

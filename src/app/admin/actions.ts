@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { refreshFeeds } from "@/lib/feeds";
 import { isConfigured, requireAdmin, serverClient } from "@/lib/supabase";
+import { combineFeatures } from "@/lib/features";
 import { COUNTRIES } from "@/lib/countries";
 
 // Two images can be sent in one save, and the host caps a request at about 4.5 MB.
@@ -77,7 +78,7 @@ export async function saveListing(form: FormData) {
       .filter(Boolean),
     // The first ticked category is also kept in its own column, for search and older code paths.
     category: categoryList[0] ?? null,
-    features: lines(text(form, "features")),
+    features: combineFeatures(form.getAll("feature_options").map(String), lines(text(form, "features")), 24),
     status,
     is_featured: form.get("is_featured") === "on",
     is_sponsored: form.get("is_sponsored") === "on",
@@ -495,7 +496,7 @@ export async function reviewSubmission(form: FormData) {
       types: [type],
       tagline: str(payload.tagline, 160),
       bio: str(payload.bio, 1500),
-      features: Array.isArray(payload.features) ? payload.features.map((f: unknown) => str(f, 120)).filter(Boolean).slice(0, 8) : [],
+      features: Array.isArray(payload.features) ? payload.features.map((f: unknown) => str(f, 120)).filter(Boolean).slice(0, 16) : [],
       sports,
       ...(["free", "paid", "freemium"].includes(payload.pricing) ? { pricing: payload.pricing } : {}),
       pricing_note: str(payload.pricing_note, 120) || null,

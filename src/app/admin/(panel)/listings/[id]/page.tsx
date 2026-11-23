@@ -1,3 +1,4 @@
+import { FEATURE_GROUPS, STANDARD_FEATURES } from "@/lib/features";
 import { COUNTRIES } from "@/lib/countries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -69,6 +70,7 @@ export default async function EditListing({ params, searchParams }: Props) {
     .map((x: any) => `${x.platform} | ${x.url}`)
     .join("\n");
   const cta = (l.affiliate_links ?? []).find((a: any) => a.is_active);
+  const currentFeatures: string[] = Array.isArray(l.features) ? l.features : [];
   const selectedCategories: string[] = Array.isArray(l.attributes?.categories) ? l.attributes.categories : l.category ? [l.category] : [];
   const gallery: string[] = Array.isArray(l.attributes?.gallery) ? l.attributes.gallery : [];
   /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -198,8 +200,24 @@ export default async function EditListing({ params, searchParams }: Props) {
           </div>
           <p className="text-xs text-muted">Tick every one that applies. Mainly for tools; visitors can filter the Tools directory by these.</p>
         </div>
-        <Field label="Features" hint="Tools only. One per line.">
-          <textarea name="features" rows={3} defaultValue={(l.features ?? []).join("\n")} className={area} />
+        <div>
+          <p className="mb-1 text-sm font-medium">Features</p>
+          <p className="mb-2 text-xs text-muted">Tick what applies. They show on the profile in this order, followed by anything you type below.</p>
+          <div className="flex flex-col gap-3">
+            {FEATURE_GROUPS.map((group) => (
+              <div key={group.title}>
+                <p className="text-xs uppercase tracking-wide text-muted">{group.title}</p>
+                <div className="grid gap-x-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.options.map((option) => (
+                    <Check key={option} name="feature_options" value={option} label={option} checked={currentFeatures.includes(option)} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <Field label="Other features" hint="Anything not in the list above. One per line.">
+          <textarea name="features" rows={3} defaultValue={currentFeatures.filter((f) => !STANDARD_FEATURES.includes(f)).join("\n")} className={area} />
         </Field>
       </Group>
 
