@@ -411,10 +411,13 @@ export async function saveSpotlight(form: FormData) {
   if (!row.starts_on || !row.ends_on) fail("Set the start and end dates.");
   if (row.ends_on < row.starts_on) fail("The end date is before the start date.");
 
-  const saved = id ? await supabase.from("spotlights").update(row).eq("id", id) : await supabase.from("spotlights").insert(row);
-  if (saved.error) fail(saved.error.message);
+  const saved = id
+    ? await supabase.from("spotlights").update(row).eq("id", id).select("id").single()
+    : await supabase.from("spotlights").insert(row).select("id").single();
+  if (saved.error || !saved.data) fail(saved.error?.message ?? "The spotlight wasn't saved.");
   revalidatePath("/", "layout");
-  redirect("/admin/spotlights?saved=1");
+  // Back to the same spotlight, where the preview link is shown.
+  redirect(`/admin/spotlights/${saved.data!.id}?saved=1`);
 }
 
 export async function deleteSpotlight(form: FormData) {
