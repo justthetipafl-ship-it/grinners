@@ -74,6 +74,23 @@ export function SpotlightFeature({ spotlight, listing, preview = false }: { spot
               Code <span className="select-all rounded border border-line bg-ink px-1.5 py-0.5 font-mono text-fg">{listing.deal.code}</span>
             </p>
           )}
+          {listing.deal.expires && <p className="mt-2 text-xs text-muted">Ends {day.format(new Date(`${listing.deal.expires}T00:00:00Z`))}</p>}
+          {listing.deal.url && (
+            <a
+              href={`/go/deal/${listing.slug}`}
+              target="_blank"
+              rel={listing.deal.affiliate ? "sponsored nofollow noopener" : "nofollow noopener"}
+              className="mt-3 flex h-11 w-fit items-center justify-center rounded-control bg-fg px-5 text-sm font-semibold text-ink hover:brightness-90"
+            >
+              Claim this deal
+            </a>
+          )}
+          {listing.deal.url && listing.deal.affiliate && (
+            <p className="mt-2 flex items-center gap-2 text-xs text-muted">
+              <DisclosureBadge kind="Affiliate link" /> Grinners may earn a commission.
+            </p>
+          )}
+          <p className="mt-2 text-xs text-muted">Offered by {listing.name}. Check the terms on their site.</p>
         </div>
       )}
 
